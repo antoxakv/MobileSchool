@@ -115,7 +115,7 @@ public class LoaderPhotos {
         return iconUrl;
     }
 
-    private String replaceInUrlForList(@TypeOfDelivery String typeOfDelivery, @TypeOfDelivery String time, String id, String uid, int count) {
+    private String replaceInUrlForList(@TypeOfDelivery String typeOfDelivery, String time, String id, String uid, int count) {
         return urlForList.replace("{typeOfDelivery}", typeOfDelivery)
                 .replace("{time}", time)
                 .replace("{id}", id)
