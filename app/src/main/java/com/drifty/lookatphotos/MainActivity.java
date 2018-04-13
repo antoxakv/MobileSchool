@@ -42,8 +42,6 @@ public class MainActivity extends AppCompatActivity implements LoaderPhotos.Call
     private int currentLine = 0;
     private int currentIndex = 0;
 
-    String name = "debug";
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,20 +66,19 @@ public class MainActivity extends AppCompatActivity implements LoaderPhotos.Call
                     createRows();
                     PhotoEntity pe = photos.get(photos.size() - 1);
                     loader.getInfoAboutPhoto(ValueTypeOfDelivery.UPDATED, ValueTypeOfDelivery.UPDATED, pe.getTime(), pe.getId(), pe.getUid(), count);
-                    Log.d(name, "start");
                 }
             }
         });
     }
 
     private void createRows() {
-        for (int i = 0; i < count; i++) {
+        for (int i = 0; i < count / countPhotoInLine; i++) {
             TableRow tr = new TableRow(this);
             tr.setLayoutParams(sizeOfRows);
-            table.addView(tr);
             for (int j = 0; j < countPhotoInLine; j++) {
                 tr.addView(getLayoutInflater().inflate(R.layout.icon_of_photo, tr, false), j);
             }
+            table.addView(tr);
         }
     }
 
@@ -127,7 +124,7 @@ public class MainActivity extends AppCompatActivity implements LoaderPhotos.Call
 
     @Override
     public void onFailedLoadPhoto(String error) {
-        System.out.println(error);
+        
     }
 
     @Override
@@ -135,6 +132,9 @@ public class MainActivity extends AppCompatActivity implements LoaderPhotos.Call
         if (this.photos == null) {
             this.photos = photos;
         } else {
+            if (!photos.isEmpty()) {
+                photos.remove(0);
+            }
             this.photos.addAll(photos);
         }
         for (PhotoEntity pe : photos) {
@@ -144,6 +144,6 @@ public class MainActivity extends AppCompatActivity implements LoaderPhotos.Call
 
     @Override
     public void onFailedLoadInfoAboutPhoto(String error) {
-        System.out.println(error);
+
     }
 }

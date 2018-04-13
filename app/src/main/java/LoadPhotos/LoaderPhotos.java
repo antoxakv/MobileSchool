@@ -33,7 +33,7 @@ public class LoaderPhotos {
     public LoaderPhotos(RequestQueue rq, @TypeOfPhotos String typeOfPhotos, CalculatorSizeOfPhoto csop, CallBack cb) {
         this.rq = rq;
         String hostAndTypeOfPhotos = "https://api-fotki.yandex.ru/api/" + typeOfPhotos;
-        urlForList = hostAndTypeOfPhotos + "/{typeOfDelivery};{time},{id},{uid},/?limit={count}";
+        urlForList = hostAndTypeOfPhotos + "/{typeOfDelivery};{time},{id},{uid}/?limit={count}";
         url = hostAndTypeOfPhotos + "/?limit={count}";
         headers.put("Accept", "application/json");
         this.cb = cb;
