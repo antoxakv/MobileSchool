@@ -57,7 +57,7 @@ public class LoaderPhotos {
         }, 0, 0, ImageView.ScaleType.CENTER, Bitmap.Config.ARGB_8888, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                cb.onFailedLoadPhoto(error.getMessage());
+                cb.onFailedLoadPhoto(error.toString());
             }
         });
         rq.add(ir);
@@ -88,13 +88,13 @@ public class LoaderPhotos {
                     }
                     cb.onSuccessLoadInfoAboutPhoto(photos);
                 } catch (JSONException e) {
-                    cb.onFailedLoadInfoAboutPhoto(e.getLocalizedMessage());
+                    cb.onFailedLoadInfoAboutPhoto(e.toString());
                 }
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                cb.onFailedLoadInfoAboutPhoto(error.getMessage());
+                cb.onFailedLoadInfoAboutPhoto(error.toString());
             }
         }) {
             @Override
