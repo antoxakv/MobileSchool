@@ -14,9 +14,7 @@ import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
-
 import com.android.volley.RequestQueue;
-
 import java.util.List;
 
 import LoadPhotos.CalculatorSizeOfPhoto;
@@ -29,6 +27,7 @@ import LoadPhotos.RequestQueueValley;
 public class MainActivity extends AppCompatActivity implements LoaderPhotos.CallBack {
     private int widthScreen;
     private int heightScreen;
+    private int topPadding = 2;
     private int countPhotoInLine = 2;
     private int count = 15;
     private boolean isPortrait;
@@ -60,6 +59,26 @@ public class MainActivity extends AppCompatActivity implements LoaderPhotos.Call
         loader.getInfoAboutPhoto(count);
     }
 
+    private void initSizeScreen() {
+        Display display = getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+        topPadding *= getResources().getDisplayMetrics().density;
+        switch (display.getRotation()) {
+            case Surface.ROTATION_0:
+            case Surface.ROTATION_180:
+                isPortrait = true;
+                widthScreen = size.x;
+                heightScreen = size.y;
+                break;
+            case Surface.ROTATION_90:
+            case Surface.ROTATION_270:
+                isPortrait = false;
+                widthScreen = size.y;
+                heightScreen = size.x;
+        }
+    }
+
     private void initScroll() {
         scroll = findViewById(R.id.scroll);
         scroll.setOnScrollChangeListener(new View.OnScrollChangeListener() {
@@ -82,12 +101,14 @@ public class MainActivity extends AppCompatActivity implements LoaderPhotos.Call
     private void initLoadingRow() {
         loadingRow = newTableRow();
         ProgressBar pb = new ProgressBar(this);
+        pb.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 1));
         loadingRow.addView(pb);
     }
 
     private TableRow newTableRow() {
         TableRow tr = new TableRow(this);
         tr.setLayoutParams(sizeOfRows);
+        tr.setPadding(0, topPadding, 0, 0);
         return tr;
     }
 
@@ -106,24 +127,6 @@ public class MainActivity extends AppCompatActivity implements LoaderPhotos.Call
         }
     }
 
-    private void initSizeScreen() {
-        Display display = getWindowManager().getDefaultDisplay();
-        Point size = new Point();
-        display.getSize(size);
-        switch (display.getRotation()) {
-            case Surface.ROTATION_0:
-            case Surface.ROTATION_180:
-                isPortrait = true;
-                widthScreen = size.x;
-                heightScreen = size.y;
-                break;
-            case Surface.ROTATION_90:
-            case Surface.ROTATION_270:
-                isPortrait = false;
-                widthScreen = size.y;
-                heightScreen = size.x;
-        }
-    }
 
     private void initIconOfPhoto(View view, Bitmap photo, final PhotoEntity pe) {
         view.setOnClickListener(new View.OnClickListener() {
