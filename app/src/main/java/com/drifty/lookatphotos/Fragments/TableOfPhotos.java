@@ -1,20 +1,23 @@
-package com.drifty.lookatphotos;
+package com.drifty.lookatphotos.Fragments;
 
+
+import android.app.Fragment;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.Point;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Display;
-import android.view.Surface;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
-import com.android.volley.RequestQueue;
+
+import com.drifty.lookatphotos.Activities.ShowPhoto;
+import com.drifty.lookatphotos.R;
+
 import java.util.List;
 
 import LoadPhotos.CalculatorSizeOfPhoto;
@@ -24,63 +27,65 @@ import LoadPhotos.MetaData.ValueTypeOfPhotos;
 import LoadPhotos.PhotoEntity;
 import LoadPhotos.RequestQueueValley;
 
-public class MainActivity extends AppCompatActivity implements LoaderPhotos.CallBack {
+public class TableOfPhotos extends Fragment implements LoaderPhotos.CallBack {
+    private int topPadding;
     private int widthScreen;
     private int heightScreen;
-    private int topPadding = 2;
-    private int countPhotoInLine = 2;
-    private int count = 15;
+    private int countPhotoInLine;
+    private int count;
     private boolean isPortrait;
 
     private List<PhotoEntity> photos;
     private LoaderPhotos loader;
-
     private ScrollView scroll;
     private TableLayout table;
-    private TableRow loadingRow;
-    private final TableRow.LayoutParams sizeOfRows = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT);
 
     private boolean isLoading = true;
     private int currentLine = 0;
     private int currentIndex = 0;
 
+    private TableRow loadingRow;
+    private final TableRow.LayoutParams sizeOfRows = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT);
+
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        initSizeScreen();
-        initScroll();
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        View fragView = inflater.inflate(R.layout.fragment_table_of_photos, container, false);
+
+        Bundle bundle = getArguments();
+        widthScreen = bundle.getInt("widthScreen");
+        heightScreen = bundle.getInt("heightScreen");
+        countPhotoInLine = bundle.getInt("countPhotoInLine");
+        count = bundle.getInt("count");
+        isPortrait = bundle.getBoolean("isPortrait");
+        topPadding = bundle.getInt("topPadding");
+
+        initScroll(fragView);
         initLoadingRow();
-        table = findViewById(R.id.table);
+        table = fragView.findViewById(R.id.table);
         table.addView(loadingRow);
-        RequestQueue rq = RequestQueueValley.getInstance(this);
         CalculatorSizeOfPhoto csop = new CalculatorSizeOfPhoto(widthScreen, heightScreen, countPhotoInLine);
-        loader = new LoaderPhotos(rq, ValueTypeOfPhotos.NEW_INTERESTING_PHOTOS, csop, this);
+        loader = new LoaderPhotos(RequestQueueValley.getInstance(), ValueTypeOfPhotos.NEW_INTERESTING_PHOTOS, csop, this);
         loader.getInfoAboutPhoto(count);
+        return fragView;
     }
 
-    private void initSizeScreen() {
-        Display display = getWindowManager().getDefaultDisplay();
-        Point size = new Point();
-        display.getSize(size);
-        topPadding *= getResources().getDisplayMetrics().density;
-        switch (display.getRotation()) {
-            case Surface.ROTATION_0:
-            case Surface.ROTATION_180:
-                isPortrait = true;
-                widthScreen = size.x;
-                heightScreen = size.y;
-                break;
-            case Surface.ROTATION_90:
-            case Surface.ROTATION_270:
-                isPortrait = false;
-                widthScreen = size.y;
-                heightScreen = size.x;
-        }
+    private TableRow newTableRow() {
+        TableRow tr = new TableRow(getContext());
+        tr.setLayoutParams(sizeOfRows);
+        tr.setPadding(0, topPadding, 0, 0);
+        return tr;
     }
 
-    private void initScroll() {
-        scroll = findViewById(R.id.scroll);
+    private void initLoadingRow() {
+        loadingRow = newTableRow();
+        ProgressBar pb = new ProgressBar(getContext());
+        pb.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 1));
+        loadingRow.addView(pb);
+    }
+
+    private void initScroll(View fragView) {
+        scroll = fragView.findViewById(R.id.scroll);
         scroll.setOnScrollChangeListener(new View.OnScrollChangeListener() {
             @Override
             public void onScrollChange(View view, int i, int i1, int i2, int i3) {
@@ -98,43 +103,13 @@ public class MainActivity extends AppCompatActivity implements LoaderPhotos.Call
         });
     }
 
-    private void initLoadingRow() {
-        loadingRow = newTableRow();
-        ProgressBar pb = new ProgressBar(this);
-        pb.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 1));
-        loadingRow.addView(pb);
-    }
-
-    private TableRow newTableRow() {
-        TableRow tr = new TableRow(this);
-        tr.setLayoutParams(sizeOfRows);
-        tr.setPadding(0, topPadding, 0, 0);
-        return tr;
-    }
-
-    private void createRows(int countPhotos) {
-        int needRow;
-        if (currentIndex != 0) {
-            countPhotos -= countPhotoInLine - currentIndex;
-        }
-        needRow = (int) Math.ceil((double) countPhotos / countPhotoInLine);
-        for (int i = 0; i < needRow; i++) {
-            TableRow tr = newTableRow();
-            for (int j = 0; j < countPhotoInLine; j++) {
-                tr.addView(getLayoutInflater().inflate(R.layout.icon_of_photo, tr, false), j);
-            }
-            table.addView(tr);
-        }
-    }
-
-
     private void initIconOfPhoto(View view, Bitmap photo, final PhotoEntity pe) {
         view.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (pe.getOrigUrl() != null) {
-                    Intent i = new Intent(MainActivity.this, ShowPhoto.class);
-                    startActivity(i);
+                    Intent intent = new Intent(getActivity(), ShowPhoto.class);
+                    startActivity(intent);
                 }
             }
         });
@@ -157,6 +132,21 @@ public class MainActivity extends AppCompatActivity implements LoaderPhotos.Call
         createRows(photos.size());
         for (PhotoEntity pe : photos) {
             loader.getPhoto(isPortrait ? pe.getPortraitIconUrl() : pe.getLandscapeIconUrl(), pe);
+        }
+    }
+
+    private void createRows(int countPhotos) {
+        int needRow;
+        if (currentIndex != 0) {
+            countPhotos -= countPhotoInLine - currentIndex;
+        }
+        needRow = (int) Math.ceil((double) countPhotos / countPhotoInLine);
+        for (int i = 0; i < needRow; i++) {
+            TableRow tr = newTableRow();
+            for (int j = 0; j < countPhotoInLine; j++) {
+                tr.addView(getActivity().getLayoutInflater().inflate(R.layout.icon_of_photo, tr, false), j);
+            }
+            table.addView(tr);
         }
     }
 
