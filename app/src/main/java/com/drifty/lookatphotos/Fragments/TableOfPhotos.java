@@ -1,10 +1,10 @@
 package com.drifty.lookatphotos.Fragments;
 
 
-import android.app.Fragment;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,8 +22,6 @@ import java.util.List;
 
 import LoadPhotos.CalculatorSizeOfPhoto;
 import LoadPhotos.LoaderPhotos;
-import LoadPhotos.MetaData.ValueTypeOfDelivery;
-import LoadPhotos.MetaData.ValueTypeOfPhotos;
 import LoadPhotos.PhotoEntity;
 import LoadPhotos.RequestQueueValley;
 
@@ -44,8 +42,14 @@ public class TableOfPhotos extends Fragment implements LoaderPhotos.CallBack {
     private int currentLine = 0;
     private int currentIndex = 0;
 
+    private String typeOfDelivery;
+    private String typeOfPhotos;
+    private String fieldForTime;
+
     private TableRow loadingRow;
     private final TableRow.LayoutParams sizeOfRows = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT);
+
+    private int limitNotWorkProperly = 0;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -53,20 +57,23 @@ public class TableOfPhotos extends Fragment implements LoaderPhotos.CallBack {
         View fragView = inflater.inflate(R.layout.fragment_table_of_photos, container, false);
 
         Bundle bundle = getArguments();
-        widthScreen = bundle.getInt("widthScreen");
-        heightScreen = bundle.getInt("heightScreen");
-        countPhotoInLine = bundle.getInt("countPhotoInLine");
-        count = bundle.getInt("count");
-        isPortrait = bundle.getBoolean("isPortrait");
-        topPadding = bundle.getInt("topPadding");
-
+        widthScreen = bundle.getInt(BundleFields.WIDTH_SCREEN);
+        heightScreen = bundle.getInt(BundleFields.HEIGHT_SCREEN);
+        countPhotoInLine = bundle.getInt(BundleFields.COUNT_PHOTO_IN_LINE);
+        count = bundle.getInt(BundleFields.COUNT);
+        limitNotWorkProperly = count;
+        isPortrait = bundle.getBoolean(BundleFields.IS_PORTRAIT);
+        topPadding = bundle.getInt(BundleFields.TOP_PADDING);
+        typeOfDelivery = bundle.getString(BundleFields.TYPE_OF_DELIVERY);
+        typeOfPhotos = bundle.getString(BundleFields.TYPE_OF_PHOTOS);
+        fieldForTime = bundle.getString(BundleFields.FIELD_FOR_TIME);
         initScroll(fragView);
         initLoadingRow();
         table = fragView.findViewById(R.id.table);
         table.addView(loadingRow);
         CalculatorSizeOfPhoto csop = new CalculatorSizeOfPhoto(widthScreen, heightScreen, countPhotoInLine);
-        loader = new LoaderPhotos(RequestQueueValley.getInstance(), ValueTypeOfPhotos.NEW_INTERESTING_PHOTOS, csop, this);
-        loader.getInfoAboutPhoto(count);
+        loader = new LoaderPhotos(RequestQueueValley.getInstance(), typeOfPhotos, csop, this);
+        loader.getInfoAboutPhoto(count, fieldForTime);
         return fragView;
     }
 
@@ -97,7 +104,7 @@ public class TableOfPhotos extends Fragment implements LoaderPhotos.CallBack {
                         changeStateInEmptyIcon(View.VISIBLE);
                     }
                     PhotoEntity pe = photos.get(photos.size() - 1);
-                    loader.getInfoAboutPhoto(ValueTypeOfDelivery.UPDATED, ValueTypeOfDelivery.UPDATED, pe.getTime(), pe.getId(), pe.getUid(), count + 1);
+                    loader.getInfoAboutPhoto(typeOfDelivery, fieldForTime, pe.getTime(), pe.getId(), pe.getUid(), count + 1);
                 }
             }
         });

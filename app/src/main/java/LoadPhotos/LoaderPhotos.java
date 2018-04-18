@@ -30,7 +30,7 @@ public class LoaderPhotos {
     private CallBack cb;
     private CalculatorSizeOfPhoto csop;
 
-    public LoaderPhotos(RequestQueue rq, @TypeOfPhotos String typeOfPhotos, CalculatorSizeOfPhoto csop, CallBack cb) {
+    public LoaderPhotos(RequestQueue rq, String typeOfPhotos, CalculatorSizeOfPhoto csop, CallBack cb) {
         this.rq = rq;
         String hostAndTypeOfPhotos = "https://api-fotki.yandex.ru/api/" + typeOfPhotos;
         urlForList = hostAndTypeOfPhotos + "/{typeOfDelivery};{time},{id},{uid}/?limit={count}";
@@ -40,11 +40,11 @@ public class LoaderPhotos {
         this.csop = csop;
     }
 
-    public void getInfoAboutPhoto(int count) {
-        createRequestForInfoAboutPhoto(replaceInUrl(count), ValueTypeOfDelivery.UPDATED);
+    public void getInfoAboutPhoto(int count, String fieldForTime) {
+        createRequestForInfoAboutPhoto(replaceInUrl(count), fieldForTime);
     }
 
-    public void getInfoAboutPhoto(@TypeOfDelivery String typeOfDelivery, @TypeOfDelivery String fieldForTime, String time, String id, String uid, int count) {
+    public void getInfoAboutPhoto(String typeOfDelivery, String fieldForTime, String time, String id, String uid, int count) {
         createRequestForInfoAboutPhoto(replaceInUrlForList(typeOfDelivery, time, id, uid, count), fieldForTime);
     }
 
@@ -63,7 +63,7 @@ public class LoaderPhotos {
         rq.add(ir);
     }
 
-    private void createRequestForInfoAboutPhoto(String url, @TypeOfDelivery final String fieldForTime) {
+    private void createRequestForInfoAboutPhoto(String url, final String fieldForTime) {
         JsonObjectRequest jor = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
@@ -115,7 +115,7 @@ public class LoaderPhotos {
         return iconUrl;
     }
 
-    private String replaceInUrlForList(@TypeOfDelivery String typeOfDelivery, String time, String id, String uid, int count) {
+    private String replaceInUrlForList(String typeOfDelivery, String time, String id, String uid, int count) {
         return urlForList.replace("{typeOfDelivery}", typeOfDelivery)
                 .replace("{time}", time)
                 .replace("{id}", id)
