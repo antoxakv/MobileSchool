@@ -2,7 +2,6 @@
     <string name="app_name">Look at photos</string>
     <string name="interesting">Интересное</string>
     <string name="popular">Популярное</string>
-
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="error">Произошла ошибка при загрузке</string>
+    <string name="repeat">Повторить</string>
 </resources>

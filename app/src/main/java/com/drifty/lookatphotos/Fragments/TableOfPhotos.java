@@ -188,8 +188,13 @@ public class TableOfPhotos extends Fragment implements LoaderInfoAboutPhotos.Cal
         initIconOfPhoto(((TableRow) table.getChildAt(currentLine)).getChildAt(currentIndex), photo, pe.getOrigUrl());
         currentIndex++;
         if (currentLine * countPhotoInLine + currentIndex == photos.size()) {
-            isLoading = false;
-            changeStateInEmptyIcon(View.INVISIBLE);
+            if(scroll.getChildAt(scroll.getChildCount() - 1).getBottom() < heightScreen){
+                PhotoEntity lastPe = photos.get(photos.size() - 1);
+                loader.getInfoAboutPhoto(typeOfDelivery, fieldForTime, lastPe.getTime(), lastPe.getId(), lastPe.getUid(), count + 1);
+            }else{
+                isLoading = false;
+                changeStateInEmptyIcon(View.INVISIBLE);
+            }
         }
         if (currentIndex == countPhotoInLine) {
             currentLine++;
@@ -214,6 +219,7 @@ public class TableOfPhotos extends Fragment implements LoaderInfoAboutPhotos.Cal
             showPhotos(photos);
         } else {
             isLoading = false;
+            changeStateInEmptyIcon(View.INVISIBLE);
         }
     }
 

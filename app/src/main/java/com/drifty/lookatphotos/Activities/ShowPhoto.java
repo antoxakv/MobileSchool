@@ -2,10 +2,13 @@ package com.drifty.lookatphotos.Activities;
 
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import com.drifty.lookatphotos.Fragments.TableOfPhotos;
 import com.drifty.lookatphotos.LoadPhotos.LoaderFullPhoto;
@@ -83,6 +86,17 @@ public class ShowPhoto extends AppCompatActivity implements LoaderFullPhoto.Call
 
     @Override
     public void onFailedLoadPhoto(String error) {
-
+        progressBar.setVisibility(View.INVISIBLE);
+        final ConstraintLayout cl = findViewById(R.id.notification_of_error);
+        cl.setVisibility(View.VISIBLE);
+        final Button button = cl.findViewById(R.id.button);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                cl.setVisibility(View.INVISIBLE);
+                progressBar.setVisibility(View.VISIBLE);
+                lfp.getPhoto(getIntent().getStringExtra(TableOfPhotos.URL));
+            }
+        });
     }
 }
