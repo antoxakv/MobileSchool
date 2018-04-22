@@ -1,4 +1,4 @@
-package LoadPhotos;
+package com.drifty.lookatphotos.LoadPhotos;
 
 import android.graphics.Bitmap;
 import android.widget.ImageView;
@@ -19,9 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import LoadPhotos.MetaData.*;
-
-public class LoaderPhotos {
+public class LoaderInfoAboutPhotos {
 
     private RequestQueue rq;
     private String urlForList;
@@ -30,7 +28,7 @@ public class LoaderPhotos {
     private CallBack cb;
     private CalculatorSizeOfPhoto csop;
 
-    public LoaderPhotos(RequestQueue rq, String typeOfPhotos, CalculatorSizeOfPhoto csop, CallBack cb) {
+    public LoaderInfoAboutPhotos(RequestQueue rq, String typeOfPhotos, CalculatorSizeOfPhoto csop, CallBack cb) {
         this.rq = rq;
         String hostAndTypeOfPhotos = "https://api-fotki.yandex.ru/api/" + typeOfPhotos;
         urlForList = hostAndTypeOfPhotos + "/{typeOfDelivery};{time},{id},{uid}/?limit={count}";
@@ -75,7 +73,6 @@ public class LoaderPhotos {
                         String id = obj.getString("id");
                         id = id.substring(id.lastIndexOf(":") + 1);
                         JSONObject authors = obj.getJSONArray("authors").getJSONObject(0);
-                        String author = authors.getString("name");
                         String uid = authors.getString("uid");
                         JSONObject img = obj.getJSONObject("img");
                         String href = "href";
@@ -84,7 +81,7 @@ public class LoaderPhotos {
                         String landscapeIconUrl = getIconUrl(csop.getTypeOfSizeForLandscape(), img, href);
                         String orig = img.getJSONObject(csop.getMaxSize()).getString(href);
                         String time = obj.getString(fieldForTime);
-                        photos.add(new PhotoEntity(id, author, uid, portraitIconUrl, landscapeIconUrl, orig, time));
+                        photos.add(new PhotoEntity(id, uid, portraitIconUrl, landscapeIconUrl, orig, time));
                     }
                     cb.onSuccessLoadInfoAboutPhoto(photos);
                 } catch (JSONException e) {

@@ -1,4 +1,4 @@
-package LoadPhotos.MetaData;
+package com.drifty.lookatphotos.LoadPhotos.MetaData;
 
 public interface TypeOfDelivery extends TypeFieldForTime {
     String RUPDATED = "rupdated";

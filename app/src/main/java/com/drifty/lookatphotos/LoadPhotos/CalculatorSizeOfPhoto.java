@@ -1,4 +1,4 @@
-package LoadPhotos;
+package com.drifty.lookatphotos.LoadPhotos;
 
 import org.json.JSONException;
 import org.json.JSONObject;

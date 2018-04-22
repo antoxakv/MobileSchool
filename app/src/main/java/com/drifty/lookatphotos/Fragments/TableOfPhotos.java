@@ -3,6 +3,7 @@ package com.drifty.lookatphotos.Fragments;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -15,17 +16,18 @@ import android.widget.ScrollView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 
+import com.drifty.lookatphotos.ApplicationContext.PhotosCache;
 import com.drifty.lookatphotos.Activities.ShowPhoto;
 import com.drifty.lookatphotos.R;
 
 import java.util.List;
 
-import LoadPhotos.CalculatorSizeOfPhoto;
-import LoadPhotos.LoaderPhotos;
-import LoadPhotos.PhotoEntity;
-import LoadPhotos.RequestQueueValley;
+import com.drifty.lookatphotos.LoadPhotos.CalculatorSizeOfPhoto;
+import com.drifty.lookatphotos.LoadPhotos.LoaderInfoAboutPhotos;
+import com.drifty.lookatphotos.LoadPhotos.PhotoEntity;
+import com.drifty.lookatphotos.LoadPhotos.RequestQueueValley;
 
-public class TableOfPhotos extends Fragment implements LoaderPhotos.CallBack {
+public class TableOfPhotos extends Fragment implements LoaderInfoAboutPhotos.CallBack {
     private int topPadding;
     private int widthScreen;
     private int heightScreen;
@@ -34,13 +36,13 @@ public class TableOfPhotos extends Fragment implements LoaderPhotos.CallBack {
     private boolean isPortrait;
 
     private List<PhotoEntity> photos;
-    private LoaderPhotos loader;
+    private LoaderInfoAboutPhotos loader;
     private ScrollView scroll;
     private TableLayout table;
 
-    private boolean isLoading = true;
-    private int currentLine = 0;
-    private int currentIndex = 0;
+    private boolean isLoading;
+    private int currentLine;
+    private int currentIndex;
 
     private String typeOfDelivery;
     private String typeOfPhotos;
@@ -49,32 +51,47 @@ public class TableOfPhotos extends Fragment implements LoaderPhotos.CallBack {
     private TableRow loadingRow;
     private final TableRow.LayoutParams sizeOfRows = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT);
 
-    private int limitNotWorkProperly = 0;
+    private PhotosCache photosCache;
+
+    public final static String URL = "url";
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View fragView = inflater.inflate(R.layout.fragment_table_of_photos, container, false);
-
         Bundle bundle = getArguments();
         widthScreen = bundle.getInt(BundleFields.WIDTH_SCREEN);
         heightScreen = bundle.getInt(BundleFields.HEIGHT_SCREEN);
         countPhotoInLine = bundle.getInt(BundleFields.COUNT_PHOTO_IN_LINE);
         count = bundle.getInt(BundleFields.COUNT);
-        limitNotWorkProperly = count;
         isPortrait = bundle.getBoolean(BundleFields.IS_PORTRAIT);
         topPadding = bundle.getInt(BundleFields.TOP_PADDING);
         typeOfDelivery = bundle.getString(BundleFields.TYPE_OF_DELIVERY);
         typeOfPhotos = bundle.getString(BundleFields.TYPE_OF_PHOTOS);
         fieldForTime = bundle.getString(BundleFields.FIELD_FOR_TIME);
+        isLoading = true;
+        currentLine = 0;
+        currentIndex = 0;
         initScroll(fragView);
         initLoadingRow();
         table = fragView.findViewById(R.id.table);
-        table.addView(loadingRow);
         CalculatorSizeOfPhoto csop = new CalculatorSizeOfPhoto(widthScreen, heightScreen, countPhotoInLine);
-        loader = new LoaderPhotos(RequestQueueValley.getInstance(), typeOfPhotos, csop, this);
-        loader.getInfoAboutPhoto(count, fieldForTime);
+        loader = new LoaderInfoAboutPhotos(RequestQueueValley.getInstance(), typeOfPhotos, csop, this);
+        photosCache = (PhotosCache) getActivity().getApplicationContext();
+        photos = photosCache.getListPhotoEntity(typeOfPhotos);
+        if (savedInstanceState == null || photos == null || photos.isEmpty()) {
+            table.addView(loadingRow);
+            loader.getInfoAboutPhoto(count, fieldForTime);
+        } else {
+            showPhotos(photos);
+        }
         return fragView;
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        photosCache.setListPhotoEntity(typeOfPhotos, photos);
     }
 
     private TableRow newTableRow() {
@@ -110,14 +127,13 @@ public class TableOfPhotos extends Fragment implements LoaderPhotos.CallBack {
         });
     }
 
-    private void initIconOfPhoto(View view, Bitmap photo, final PhotoEntity pe) {
+    private void initIconOfPhoto(View view, Bitmap photo, final String url) {
         view.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (pe.getOrigUrl() != null) {
-                    Intent intent = new Intent(getActivity(), ShowPhoto.class);
-                    startActivity(intent);
-                }
+                Intent intent = new Intent(getActivity(), ShowPhoto.class);
+                intent.putExtra(URL, url);
+                startActivity(intent);
             }
         });
         ((ImageView) view.findViewById(R.id.photo)).setImageBitmap(photo);
@@ -138,7 +154,12 @@ public class TableOfPhotos extends Fragment implements LoaderPhotos.CallBack {
     private void showPhotos(List<PhotoEntity> photos) {
         createRows(photos.size());
         for (PhotoEntity pe : photos) {
-            loader.getPhoto(isPortrait ? pe.getPortraitIconUrl() : pe.getLandscapeIconUrl(), pe);
+            Bitmap photo = isPortrait ? pe.getPortraitIcon() : pe.getLandscapeIcon();
+            if (photo == null) {
+                loader.getPhoto(isPortrait ? pe.getPortraitIconUrl() : pe.getLandscapeIconUrl(), pe);
+            } else {
+                onSuccessLoadPhoto(photo, pe);
+            }
         }
     }
 
@@ -164,7 +185,7 @@ public class TableOfPhotos extends Fragment implements LoaderPhotos.CallBack {
         } else {
             pe.setLandscapeIcon(photo);
         }
-        initIconOfPhoto(((TableRow) table.getChildAt(currentLine)).getChildAt(currentIndex), photo, pe);
+        initIconOfPhoto(((TableRow) table.getChildAt(currentLine)).getChildAt(currentIndex), photo, pe.getOrigUrl());
         currentIndex++;
         if (currentLine * countPhotoInLine + currentIndex == photos.size()) {
             isLoading = false;

@@ -1,4 +1,4 @@
-package LoadPhotos.MetaData;
+package com.drifty.lookatphotos.LoadPhotos.MetaData;
 
 public interface TypeOfPhotos {
     String NEW_INTERESTING_PHOTOS = "recent";

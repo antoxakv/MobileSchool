@@ -1,10 +1,9 @@
-package LoadPhotos;
+package com.drifty.lookatphotos.LoadPhotos;
 
 import android.graphics.Bitmap;
 
 public class PhotoEntity {
     private String id;
-    private String author;
     private String uid;
     private String portraitIconUrl;
     private String landscapeIconUrl;
@@ -13,11 +12,9 @@ public class PhotoEntity {
 
     private Bitmap portraitIcon;
     private Bitmap landscapeIcon;
-    private Bitmap orig;
 
-    public PhotoEntity(String id, String author, String uid, String portraitIconUrl, String landscapeIconUrl, String origUrl, String time) {
+    public PhotoEntity(String id, String uid, String portraitIconUrl, String landscapeIconUrl, String origUrl, String time) {
         this.id = id;
-        this.author = author;
         this.uid = uid;
         this.portraitIconUrl = portraitIconUrl;
         this.landscapeIconUrl = landscapeIconUrl;
@@ -33,16 +30,8 @@ public class PhotoEntity {
         this.landscapeIcon = landscapeIcon;
     }
 
-    public void setOrig(Bitmap orig) {
-        this.orig = orig;
-    }
-
     public String getId() {
         return id;
-    }
-
-    public String getAuthor() {
-        return author;
     }
 
     public String getUid() {
@@ -67,10 +56,6 @@ public class PhotoEntity {
 
     public Bitmap getLandscapeIcon() {
         return landscapeIcon;
-    }
-
-    public Bitmap getOrig() {
-        return orig;
     }
 
     public String getTime() {

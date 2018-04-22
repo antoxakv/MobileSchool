@@ -17,20 +17,19 @@ import com.drifty.lookatphotos.R;
 import java.util.ArrayList;
 import java.util.List;
 
-import LoadPhotos.MetaData.TypeFieldForTime;
-import LoadPhotos.MetaData.TypeOfDelivery;
-import LoadPhotos.MetaData.TypeOfPhotos;
-import LoadPhotos.RequestQueueValley;
+import com.drifty.lookatphotos.LoadPhotos.MetaData.TypeFieldForTime;
+import com.drifty.lookatphotos.LoadPhotos.MetaData.TypeOfDelivery;
+import com.drifty.lookatphotos.LoadPhotos.MetaData.TypeOfPhotos;
+import com.drifty.lookatphotos.LoadPhotos.RequestQueueValley;
 
 public class MainActivity extends AppCompatActivity {
-
-    private TableOfPhotos newInterestingPhotos;
-    private TableOfPhotos popularPhotos;
 
     private int topPadding = 2;
     private int countPhotoInLine = 2;
     private int count = 20;
-    private Bundle screenConfig = new Bundle();
+    private int width;
+    private int height;
+    private boolean isPortrait;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,48 +37,75 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         RequestQueueValley.getInstance(this);
         initSizeScreen();
-        screenConfig.putInt(BundleFields.COUNT_PHOTO_IN_LINE, countPhotoInLine);
-        screenConfig.putInt(BundleFields.COUNT, count);
-        newInterestingPhotos = newTablePhotos(TypeOfDelivery.UPDATED, TypeOfPhotos.NEW_INTERESTING_PHOTOS, TypeFieldForTime.UPDATED);
-        popularPhotos = newTablePhotos(TypeOfDelivery.UPDATED, TypeOfPhotos.POPULAR_PHOTOS, TypeFieldForTime.UPDATED);
+        if (savedInstanceState != null) {
+            //увеломление фрагментов(TableOfPhotos) об изменении кофигурации
+            for (Fragment top : getSupportFragmentManager().getFragments()) {
+                Bundle bundle = top.getArguments();
+                top.setArguments(newBundleForArgs(bundle.getString(BundleFields.TYPE_OF_DELIVERY),
+                        bundle.getString(BundleFields.TYPE_OF_PHOTOS),
+                        bundle.getString(BundleFields.FIELD_FOR_TIME)));
+            }
+        }
+        initViewPager();
+    }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        RequestQueueValley.getInstance().stop();
+    }
+
+    private void initViewPager() {
+        final List<String> titleOfTableOfPhotos = new ArrayList<>(2);
+        titleOfTableOfPhotos.add(getResources().getString(R.string.interesting));
+        titleOfTableOfPhotos.add(getResources().getString(R.string.popular));
         ViewPager pager = findViewById(R.id.pager);
-        final List<TableOfPhotos> fragments = new ArrayList<>(2);
-        fragments.add(newInterestingPhotos);
-        fragments.add(popularPhotos);
-        final List<String> titleOfFragments = new ArrayList<>(2);
-        titleOfFragments.add(getResources().getString(R.string.interesting));
-        titleOfFragments.add(getResources().getString(R.string.popular));
         FragmentPagerAdapter fpa = new FragmentPagerAdapter(getSupportFragmentManager()) {
             @Override
             public Fragment getItem(int position) {
-                return fragments.get(position);
+                Fragment f = null;
+                switch (position) {
+                    case 0:
+                        f = newTablePhotos(TypeOfDelivery.UPDATED, TypeOfPhotos.NEW_INTERESTING_PHOTOS, TypeFieldForTime.UPDATED);
+                        break;
+                    case 1:
+                        f = newTablePhotos(TypeOfDelivery.UPDATED, TypeOfPhotos.POPULAR_PHOTOS, TypeFieldForTime.UPDATED);
+                }
+                return f;
             }
 
             @Override
             public int getCount() {
-                return fragments.size();
+                return titleOfTableOfPhotos.size();
             }
 
             @Override
             public CharSequence getPageTitle(int position) {
-                return titleOfFragments.get(position);
+                return titleOfTableOfPhotos.get(position);
             }
         };
         pager.setAdapter(fpa);
-        TabLayout tabLayout = findViewById(R.id.tabs);
-        tabLayout.setupWithViewPager(pager);
-
+        ((TabLayout) findViewById(R.id.tabs)).setupWithViewPager(pager);
     }
 
     private TableOfPhotos newTablePhotos(String typeOfDelivery, String typeOfPhotos, String fieldForTime) {
         TableOfPhotos top = new TableOfPhotos();
-        Bundle bundle = (Bundle) screenConfig.clone();
+        top.setArguments(newBundleForArgs(typeOfDelivery, typeOfPhotos, fieldForTime));
+        return top;
+    }
+
+    private Bundle newBundleForArgs(String typeOfDelivery, String typeOfPhotos, String fieldForTime) {
+        Bundle bundle = new Bundle();
+        bundle.putInt(BundleFields.WIDTH_SCREEN, width);
+        bundle.putInt(BundleFields.HEIGHT_SCREEN, height);
+        bundle.putBoolean(BundleFields.IS_PORTRAIT, isPortrait);
+        bundle.putInt(BundleFields.TOP_PADDING, topPadding);
+        bundle.putInt(BundleFields.COUNT, count);
+        bundle.putInt(BundleFields.COUNT_PHOTO_IN_LINE, countPhotoInLine);
         bundle.putString(BundleFields.TYPE_OF_DELIVERY, typeOfDelivery);
         bundle.putString(BundleFields.TYPE_OF_PHOTOS, typeOfPhotos);
         bundle.putString(BundleFields.FIELD_FOR_TIME, fieldForTime);
-        top.setArguments(bundle);
-        return top;
+        return bundle;
     }
 
     private void initSizeScreen() {
@@ -87,20 +113,18 @@ public class MainActivity extends AppCompatActivity {
         Point size = new Point();
         display.getSize(size);
         topPadding *= getResources().getDisplayMetrics().density;
-        screenConfig.putInt(BundleFields.TOP_PADDING, topPadding);
         switch (display.getRotation()) {
             case Surface.ROTATION_0:
             case Surface.ROTATION_180:
-                screenConfig.putBoolean(BundleFields.IS_PORTRAIT, true);
-                screenConfig.putInt(BundleFields.WIDTH_SCREEN, size.x);
-                screenConfig.putInt(BundleFields.HEIGHT_SCREEN, size.y);
+                isPortrait = true;
+                width = size.x;
+                height = size.y;
                 break;
             case Surface.ROTATION_90:
             case Surface.ROTATION_270:
-                screenConfig.putBoolean(BundleFields.IS_PORTRAIT, false);
-                screenConfig.putInt(BundleFields.WIDTH_SCREEN, size.y);
-                screenConfig.putInt(BundleFields.HEIGHT_SCREEN, size.x);
+                isPortrait = false;
+                width = size.y;
+                height = size.x;
         }
     }
-
 }
