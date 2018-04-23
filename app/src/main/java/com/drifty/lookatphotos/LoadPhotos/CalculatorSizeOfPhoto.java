@@ -58,10 +58,6 @@ public class CalculatorSizeOfPhoto {
         }
     }
 
-    public void setCountPhotoInLine(int countPhotoInLine) {
-        this.countPhotoInLine = countPhotoInLine;
-    }
-
     public String getTypeOfSizeForLandscape() {
         return typeOfSizeForLandscape;
     }

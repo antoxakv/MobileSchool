@@ -3,13 +3,13 @@ package com.drifty.lookatphotos.Fragments;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.ScrollView;
@@ -20,6 +20,9 @@ import com.drifty.lookatphotos.ApplicationContext.PhotosCache;
 import com.drifty.lookatphotos.Activities.ShowPhoto;
 import com.drifty.lookatphotos.R;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import com.drifty.lookatphotos.LoadPhotos.CalculatorSizeOfPhoto;
@@ -36,6 +39,7 @@ public class TableOfPhotos extends Fragment implements LoaderInfoAboutPhotos.Cal
     private boolean isPortrait;
 
     private List<PhotoEntity> photos;
+    private List<PhotoEntity> notLoadedPhotos;
     private LoaderInfoAboutPhotos loader;
     private ScrollView scroll;
     private TableLayout table;
@@ -49,7 +53,9 @@ public class TableOfPhotos extends Fragment implements LoaderInfoAboutPhotos.Cal
     private String fieldForTime;
 
     private TableRow loadingRow;
+    private TableRow errorRow;
     private final TableRow.LayoutParams sizeOfRows = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT);
+    private final TableRow.LayoutParams centerInTr = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 1);
 
     private PhotosCache photosCache;
 
@@ -74,6 +80,7 @@ public class TableOfPhotos extends Fragment implements LoaderInfoAboutPhotos.Cal
         currentIndex = 0;
         initScroll(fragView);
         initLoadingRow();
+        initNotificationOfError(inflater);
         table = fragView.findViewById(R.id.table);
         CalculatorSizeOfPhoto csop = new CalculatorSizeOfPhoto(widthScreen, heightScreen, countPhotoInLine);
         loader = new LoaderInfoAboutPhotos(RequestQueueValley.getInstance(), typeOfPhotos, csop, this);
@@ -104,8 +111,24 @@ public class TableOfPhotos extends Fragment implements LoaderInfoAboutPhotos.Cal
     private void initLoadingRow() {
         loadingRow = newTableRow();
         ProgressBar pb = new ProgressBar(getContext());
-        pb.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 1));
+        pb.setLayoutParams(centerInTr);
         loadingRow.addView(pb);
+    }
+
+    private void initNotificationOfError(LayoutInflater inflater) {
+        errorRow = newTableRow();
+        ConstraintLayout notificationOfError = (ConstraintLayout) inflater.inflate(R.layout.notification_of_error, errorRow, false);
+        notificationOfError.setLayoutParams(centerInTr);
+        errorRow.addView(notificationOfError);
+        Button repeatBtn = notificationOfError.findViewById(R.id.repeatBtn);
+        repeatBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                table.removeView(errorRow);
+                table.addView(loadingRow);
+                loader.getInfoAboutPhoto(count, fieldForTime);
+            }
+        });
     }
 
     private void initScroll(View fragView) {
@@ -113,6 +136,7 @@ public class TableOfPhotos extends Fragment implements LoaderInfoAboutPhotos.Cal
         scroll.setOnScrollChangeListener(new View.OnScrollChangeListener() {
             @Override
             public void onScrollChange(View view, int i, int i1, int i2, int i3) {
+                //При достижении scroll'a последних фотографий происходит загрузка новых фото.
                 if (scroll.getChildAt(scroll.getChildCount() - 1).getBottom() - (scroll.getHeight() + scroll.getScrollY()) <= 0 && !isLoading) {
                     isLoading = true;
                     if (currentIndex == 0) {
@@ -188,10 +212,10 @@ public class TableOfPhotos extends Fragment implements LoaderInfoAboutPhotos.Cal
         initIconOfPhoto(((TableRow) table.getChildAt(currentLine)).getChildAt(currentIndex), photo, pe.getOrigUrl());
         currentIndex++;
         if (currentLine * countPhotoInLine + currentIndex == photos.size()) {
-            if(scroll.getChildAt(scroll.getChildCount() - 1).getBottom() < heightScreen){
+            if (scroll.getChildAt(scroll.getChildCount() - 1).getBottom() < heightScreen) {
                 PhotoEntity lastPe = photos.get(photos.size() - 1);
                 loader.getInfoAboutPhoto(typeOfDelivery, fieldForTime, lastPe.getTime(), lastPe.getId(), lastPe.getUid(), count + 1);
-            }else{
+            } else {
                 isLoading = false;
                 changeStateInEmptyIcon(View.INVISIBLE);
             }
@@ -203,8 +227,17 @@ public class TableOfPhotos extends Fragment implements LoaderInfoAboutPhotos.Cal
     }
 
     @Override
-    public void onFailedLoadPhoto(String error) {
-        Log.d("debug", error);
+    public synchronized void onFailedLoadPhoto(PhotoEntity pe) {
+        if (notLoadedPhotos == null) {
+            notLoadedPhotos = new ArrayList<>();
+        }
+        notLoadedPhotos.add(pe);
+        if (photos.size() == notLoadedPhotos.size() && table.getChildCount() == 1) {
+            table.removeView(loadingRow);
+            table.addView(errorRow);
+        } else {
+            //удаляем пустые строки
+        }
     }
 
     @Override
@@ -219,12 +252,24 @@ public class TableOfPhotos extends Fragment implements LoaderInfoAboutPhotos.Cal
             showPhotos(photos);
         } else {
             isLoading = false;
-            changeStateInEmptyIcon(View.INVISIBLE);
+            if (currentIndex != 0) {
+                changeStateInEmptyIcon(View.INVISIBLE);
+            }
         }
     }
 
     @Override
-    public void onFailedLoadInfoAboutPhoto(String error) {
-        Log.d("debug", error);
+    public void onFailedLoadInfoAboutPhoto() {
+        if (photos == null) {
+            table.removeView(loadingRow);
+            table.addView(errorRow);
+        } else {
+            isLoading = false;
+            if (currentIndex == 0) {
+                table.removeView(loadingRow);
+            } else {
+                changeStateInEmptyIcon(View.INVISIBLE);
+            }
+        }
     }
 }

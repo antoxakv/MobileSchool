@@ -28,7 +28,7 @@ public class LoaderFullPhoto {
         }, 0, 0, ImageView.ScaleType.CENTER, Bitmap.Config.ARGB_8888, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                cb.onFailedLoadPhoto(error.toString());
+                cb.onFailedLoadPhoto();
             }
         });
 
@@ -42,6 +42,6 @@ public class LoaderFullPhoto {
     public interface CallBack {
         void onSuccessLoadPhoto(Bitmap photo);
 
-        void onFailedLoadPhoto(String error);
+        void onFailedLoadPhoto();
     }
 }

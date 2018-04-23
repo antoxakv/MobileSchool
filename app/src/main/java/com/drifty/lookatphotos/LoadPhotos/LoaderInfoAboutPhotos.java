@@ -55,7 +55,7 @@ public class LoaderInfoAboutPhotos {
         }, 0, 0, ImageView.ScaleType.CENTER, Bitmap.Config.ARGB_8888, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                cb.onFailedLoadPhoto(error.toString());
+                cb.onFailedLoadPhoto(pe);
             }
         });
         rq.add(ir);
@@ -85,13 +85,13 @@ public class LoaderInfoAboutPhotos {
                     }
                     cb.onSuccessLoadInfoAboutPhoto(photos);
                 } catch (JSONException e) {
-                    cb.onFailedLoadInfoAboutPhoto(e.toString());
+                    cb.onFailedLoadInfoAboutPhoto();
                 }
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                cb.onFailedLoadInfoAboutPhoto(error.toString());
+                cb.onFailedLoadInfoAboutPhoto();
             }
         }) {
             @Override
@@ -127,10 +127,10 @@ public class LoaderInfoAboutPhotos {
     public interface CallBack {
         void onSuccessLoadPhoto(Bitmap photo, PhotoEntity pe);
 
-        void onFailedLoadPhoto(String error);
+        void onFailedLoadPhoto(PhotoEntity pe);
 
         void onSuccessLoadInfoAboutPhoto(List<PhotoEntity> photos);
 
-        void onFailedLoadInfoAboutPhoto(String error);
+        void onFailedLoadInfoAboutPhoto();
     }
 }
