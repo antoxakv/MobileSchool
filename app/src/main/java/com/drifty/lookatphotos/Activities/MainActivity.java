@@ -24,7 +24,6 @@ import com.drifty.lookatphotos.LoadPhotos.RequestQueueValley;
 
 public class MainActivity extends AppCompatActivity {
 
-    private int topPadding = 2;
     private int countPhotoInLine = 2;
     private int count = 20;
     private int width;
@@ -93,7 +92,6 @@ public class MainActivity extends AppCompatActivity {
         bundle.putInt(BundleFields.WIDTH_SCREEN, width);
         bundle.putInt(BundleFields.HEIGHT_SCREEN, height);
         bundle.putBoolean(BundleFields.IS_PORTRAIT, isPortrait);
-        bundle.putInt(BundleFields.TOP_PADDING, topPadding);
         bundle.putInt(BundleFields.COUNT, count);
         bundle.putInt(BundleFields.COUNT_PHOTO_IN_LINE, countPhotoInLine);
         bundle.putString(BundleFields.TYPE_OF_DELIVERY, typeOfDelivery);
@@ -106,7 +104,6 @@ public class MainActivity extends AppCompatActivity {
         Display display = getWindowManager().getDefaultDisplay();
         Point size = new Point();
         display.getSize(size);
-        topPadding *= getResources().getDisplayMetrics().density;
         switch (display.getRotation()) {
             case Surface.ROTATION_0:
             case Surface.ROTATION_180:

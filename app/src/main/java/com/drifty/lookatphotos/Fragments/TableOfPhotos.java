@@ -21,10 +21,6 @@ import com.drifty.lookatphotos.LoadPhotos.PhotoEntity;
 import com.drifty.lookatphotos.LoadPhotos.RequestQueueValley;
 
 public class TableOfPhotos extends Fragment implements LoaderInfoAboutPhotos.CallBack {
-    private int topPadding;
-    private int widthScreen;
-    private int heightScreen;
-    private int countPhotoInLine;
     private int count;
     private boolean isPortrait;
     private String typeOfDelivery;
@@ -39,7 +35,7 @@ public class TableOfPhotos extends Fragment implements LoaderInfoAboutPhotos.Cal
     public final static String URL = "url";
 
     private RecyclerView recyclerView;
-    private MyAdapter adapter;
+    private PhotoEntityAdapter adapter;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -47,40 +43,41 @@ public class TableOfPhotos extends Fragment implements LoaderInfoAboutPhotos.Cal
         View fragView = inflater.inflate(R.layout.fragment_table_of_photos, container, false);
 
         Bundle bundle = getArguments();
-        widthScreen = bundle.getInt(BundleFields.WIDTH_SCREEN);
-        heightScreen = bundle.getInt(BundleFields.HEIGHT_SCREEN);
-        countPhotoInLine = bundle.getInt(BundleFields.COUNT_PHOTO_IN_LINE);
         count = bundle.getInt(BundleFields.COUNT);
         isPortrait = bundle.getBoolean(BundleFields.IS_PORTRAIT);
-        topPadding = bundle.getInt(BundleFields.TOP_PADDING);
         typeOfDelivery = bundle.getString(BundleFields.TYPE_OF_DELIVERY);
         typeOfPhotos = bundle.getString(BundleFields.TYPE_OF_PHOTOS);
         fieldForTime = bundle.getString(BundleFields.FIELD_FOR_TIME);
-
-        CalculatorSizeOfPhoto csop = new CalculatorSizeOfPhoto(widthScreen, heightScreen, countPhotoInLine);
+        int countPhotoInLine = bundle.getInt(BundleFields.COUNT_PHOTO_IN_LINE);
+        CalculatorSizeOfPhoto csop = new CalculatorSizeOfPhoto(bundle.getInt(BundleFields.WIDTH_SCREEN),
+                bundle.getInt(BundleFields.HEIGHT_SCREEN),
+                countPhotoInLine);
         loader = new LoaderInfoAboutPhotos(RequestQueueValley.getInstance(), typeOfPhotos, csop, this);
         photosCache = (PhotosCache) getActivity().getApplicationContext();
 
         photos = photosCache.getListPhotoEntity(typeOfPhotos);
-        if(photos == null){
+        if (photos == null) {
             photos = new ArrayList<>();
         }
-        initRecyclerView(fragView);
+        initRecyclerView(fragView, countPhotoInLine);
         if (savedInstanceState == null || photos.isEmpty()) {
             loader.getInfoAboutPhoto(count, fieldForTime);
         } else {
-
+            for (PhotoEntity pe : photos) {
+                Bitmap photo = getCurrentOrig(pe);
+                if (photo == null) {
+                    loader.getPhoto(getCurrentUrl(pe), pe);
+                }
+            }
+            adapter.notifyDataSetChanged();
         }
         return fragView;
     }
 
-    private void initRecyclerView(View fragView) {
+    private void initRecyclerView(View fragView, int countPhotoInLine) {
         recyclerView = fragView.findViewById(R.id.recyclerView);
-        GridLayoutManager glm = new GridLayoutManager(getContext(), countPhotoInLine);
-        GridLayoutManager.LayoutParams lp = new GridLayoutManager.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        glm.generateLayoutParams(lp);
-        recyclerView.setLayoutManager(glm);
-        adapter = new MyAdapter(getContext(), photos, isPortrait);
+        recyclerView.setLayoutManager(new GridLayoutManager(getContext(), countPhotoInLine));
+        adapter = new PhotoEntityAdapter(getContext(), photos, isPortrait);
         recyclerView.setAdapter(adapter);
     }
 
@@ -97,7 +94,7 @@ public class TableOfPhotos extends Fragment implements LoaderInfoAboutPhotos.Cal
         } else {
             pe.setLandscapeIcon(photo);
         }
-        adapter.setPhotoEntities(photos);
+        adapter.notifyDataSetChanged();
     }
 
     @Override
@@ -109,12 +106,20 @@ public class TableOfPhotos extends Fragment implements LoaderInfoAboutPhotos.Cal
     public void onSuccessLoadInfoAboutPhoto(List<PhotoEntity> photos) {
         this.photos.addAll(photos);
         for (PhotoEntity pe : photos) {
-            loader.getPhoto(isPortrait ? pe.getPortraitIconUrl() : pe.getLandscapeIconUrl(), pe);
+            loader.getPhoto(getCurrentUrl(pe), pe);
         }
     }
 
     @Override
     public void onFailedLoadInfoAboutPhoto() {
 
+    }
+
+    private String getCurrentUrl(PhotoEntity pe) {
+        return isPortrait ? pe.getPortraitIconUrl() : pe.getLandscapeIconUrl();
+    }
+
+    private Bitmap getCurrentOrig(PhotoEntity pe) {
+        return isPortrait ? pe.getPortraitIcon() : pe.getLandscapeIcon();
     }
 }

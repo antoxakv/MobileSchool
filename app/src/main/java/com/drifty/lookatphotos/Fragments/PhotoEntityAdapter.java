@@ -11,38 +11,35 @@ import com.drifty.lookatphotos.R;
 
 import java.util.List;
 
-public class MyAdapter extends RecyclerView.Adapter<ViewHolder> {
+public class PhotoEntityAdapter extends RecyclerView.Adapter<PhotoViewHolder> {
 
     private LayoutInflater inflater;
     private List<PhotoEntity> photoEntities;
     private boolean isPortrait;
+    private Context context;
 
-    public MyAdapter(Context context, List<PhotoEntity> photoEntities, boolean isPortrait) {
+    public PhotoEntityAdapter(Context context, List<PhotoEntity> photoEntities, boolean isPortrait) {
         inflater = LayoutInflater.from(context);
         this.photoEntities = photoEntities;
         this.isPortrait = isPortrait;
+        this.context = context;
     }
 
     @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public PhotoViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = inflater.inflate(R.layout.icon_of_photo, parent, false);
-        return new ViewHolder(view);
+        return new PhotoViewHolder(view, context);
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
+    public void onBindViewHolder(PhotoViewHolder holder, int position) {
         PhotoEntity photo = photoEntities.get(position);
-        holder.getProgressBar().setVisibility(View.INVISIBLE);
-        holder.getPhoto().setImageBitmap(isPortrait ? photo.getPortraitIcon() : photo.getLandscapeIcon());
+        holder.setUrl(photo.getOrigUrl());
+        holder.setPhoto(isPortrait ? photo.getPortraitIcon() : photo.getLandscapeIcon());
     }
 
     @Override
     public int getItemCount() {
         return photoEntities.size();
-    }
-
-    public void setPhotoEntities(List<PhotoEntity> photoEntities) {
-        this.photoEntities = photoEntities;
-        notifyDataSetChanged();
     }
 }
