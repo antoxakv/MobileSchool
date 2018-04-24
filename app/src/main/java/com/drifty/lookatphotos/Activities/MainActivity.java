@@ -35,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        RequestQueueValley.getInstance(this);
+        RequestQueueValley.getInstance(getApplicationContext());
         initSizeScreen();
         if (savedInstanceState != null) {
             //увеломление фрагментов(TableOfPhotos) об изменении кофигурации
@@ -47,12 +47,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         initViewPager();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        RequestQueueValley.getInstance().stop();
     }
 
     private void initViewPager() {

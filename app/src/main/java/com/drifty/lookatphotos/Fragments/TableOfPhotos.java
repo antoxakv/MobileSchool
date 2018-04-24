@@ -1,28 +1,18 @@
 package com.drifty.lookatphotos.Fragments;
 
-
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
-import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.ProgressBar;
-import android.widget.ScrollView;
-import android.widget.TableLayout;
-import android.widget.TableRow;
 
 import com.drifty.lookatphotos.ApplicationContext.PhotosCache;
-import com.drifty.lookatphotos.Activities.ShowPhoto;
 import com.drifty.lookatphotos.R;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import com.drifty.lookatphotos.LoadPhotos.CalculatorSizeOfPhoto;
@@ -37,34 +27,25 @@ public class TableOfPhotos extends Fragment implements LoaderInfoAboutPhotos.Cal
     private int countPhotoInLine;
     private int count;
     private boolean isPortrait;
-
-    private List<PhotoEntity> photos;
-    private List<PhotoEntity> notLoadedPhotos;
-    private LoaderInfoAboutPhotos loader;
-    private ScrollView scroll;
-    private TableLayout table;
-
-    private boolean isLoading;
-    private int currentLine;
-    private int currentIndex;
-
     private String typeOfDelivery;
     private String typeOfPhotos;
     private String fieldForTime;
 
-    private TableRow loadingRow;
-    private TableRow errorRow;
-    private final TableRow.LayoutParams sizeOfRows = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT);
-    private final TableRow.LayoutParams centerInTr = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 1);
+    private List<PhotoEntity> photos = new ArrayList<>();
 
+    private LoaderInfoAboutPhotos loader;
     private PhotosCache photosCache;
 
     public final static String URL = "url";
+
+    private RecyclerView recyclerView;
+    private MyAdapter adapter;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View fragView = inflater.inflate(R.layout.fragment_table_of_photos, container, false);
+
         Bundle bundle = getArguments();
         widthScreen = bundle.getInt(BundleFields.WIDTH_SCREEN);
         heightScreen = bundle.getInt(BundleFields.HEIGHT_SCREEN);
@@ -75,24 +56,32 @@ public class TableOfPhotos extends Fragment implements LoaderInfoAboutPhotos.Cal
         typeOfDelivery = bundle.getString(BundleFields.TYPE_OF_DELIVERY);
         typeOfPhotos = bundle.getString(BundleFields.TYPE_OF_PHOTOS);
         fieldForTime = bundle.getString(BundleFields.FIELD_FOR_TIME);
-        isLoading = true;
-        currentLine = 0;
-        currentIndex = 0;
-        initScroll(fragView);
-        initLoadingRow();
-        initNotificationOfError(inflater);
-        table = fragView.findViewById(R.id.table);
+
         CalculatorSizeOfPhoto csop = new CalculatorSizeOfPhoto(widthScreen, heightScreen, countPhotoInLine);
         loader = new LoaderInfoAboutPhotos(RequestQueueValley.getInstance(), typeOfPhotos, csop, this);
         photosCache = (PhotosCache) getActivity().getApplicationContext();
+
         photos = photosCache.getListPhotoEntity(typeOfPhotos);
-        if (savedInstanceState == null || photos == null || photos.isEmpty()) {
-            table.addView(loadingRow);
+        if(photos == null){
+            photos = new ArrayList<>();
+        }
+        initRecyclerView(fragView);
+        if (savedInstanceState == null || photos.isEmpty()) {
             loader.getInfoAboutPhoto(count, fieldForTime);
         } else {
-            showPhotos(photos);
+
         }
         return fragView;
+    }
+
+    private void initRecyclerView(View fragView) {
+        recyclerView = fragView.findViewById(R.id.recyclerView);
+        GridLayoutManager glm = new GridLayoutManager(getContext(), countPhotoInLine);
+        GridLayoutManager.LayoutParams lp = new GridLayoutManager.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        glm.generateLayoutParams(lp);
+        recyclerView.setLayoutManager(glm);
+        adapter = new MyAdapter(getContext(), photos, isPortrait);
+        recyclerView.setAdapter(adapter);
     }
 
     @Override
@@ -101,175 +90,31 @@ public class TableOfPhotos extends Fragment implements LoaderInfoAboutPhotos.Cal
         photosCache.setListPhotoEntity(typeOfPhotos, photos);
     }
 
-    private TableRow newTableRow() {
-        TableRow tr = new TableRow(getContext());
-        tr.setLayoutParams(sizeOfRows);
-        tr.setPadding(0, topPadding, 0, 0);
-        return tr;
-    }
-
-    private void initLoadingRow() {
-        loadingRow = newTableRow();
-        ProgressBar pb = new ProgressBar(getContext());
-        pb.setLayoutParams(centerInTr);
-        loadingRow.addView(pb);
-    }
-
-    private void initNotificationOfError(LayoutInflater inflater) {
-        errorRow = newTableRow();
-        ConstraintLayout notificationOfError = (ConstraintLayout) inflater.inflate(R.layout.notification_of_error, errorRow, false);
-        notificationOfError.setLayoutParams(centerInTr);
-        errorRow.addView(notificationOfError);
-        Button repeatBtn = notificationOfError.findViewById(R.id.repeatBtn);
-        repeatBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                table.removeView(errorRow);
-                table.addView(loadingRow);
-                loader.getInfoAboutPhoto(count, fieldForTime);
-            }
-        });
-    }
-
-    private void initScroll(View fragView) {
-        scroll = fragView.findViewById(R.id.scroll);
-        scroll.setOnScrollChangeListener(new View.OnScrollChangeListener() {
-            @Override
-            public void onScrollChange(View view, int i, int i1, int i2, int i3) {
-                //При достижении scroll'a последних фотографий происходит загрузка новых фото.
-                if (scroll.getChildAt(scroll.getChildCount() - 1).getBottom() - (scroll.getHeight() + scroll.getScrollY()) <= 0 && !isLoading) {
-                    isLoading = true;
-                    if (currentIndex == 0) {
-                        table.addView(loadingRow);
-                    } else {
-                        changeStateInEmptyIcon(View.VISIBLE);
-                    }
-                    PhotoEntity pe = photos.get(photos.size() - 1);
-                    loader.getInfoAboutPhoto(typeOfDelivery, fieldForTime, pe.getTime(), pe.getId(), pe.getUid(), count + 1);
-                }
-            }
-        });
-    }
-
-    private void initIconOfPhoto(View view, Bitmap photo, final String url) {
-        view.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(getActivity(), ShowPhoto.class);
-                intent.putExtra(URL, url);
-                startActivity(intent);
-            }
-        });
-        ((ImageView) view.findViewById(R.id.photo)).setImageBitmap(photo);
-        view.findViewById(R.id.progressBar).setVisibility(View.GONE);
-    }
-
-    private void changeStateInEmptyIcon(int code) {
-        int indexPbForOff = currentIndex;
-        while (indexPbForOff != countPhotoInLine) {
-            ((TableRow) table.getChildAt(currentLine))
-                    .getChildAt(indexPbForOff)
-                    .findViewById(R.id.progressBar)
-                    .setVisibility(code);
-            indexPbForOff++;
-        }
-    }
-
-    private void showPhotos(List<PhotoEntity> photos) {
-        createRows(photos.size());
-        for (PhotoEntity pe : photos) {
-            Bitmap photo = isPortrait ? pe.getPortraitIcon() : pe.getLandscapeIcon();
-            if (photo == null) {
-                loader.getPhoto(isPortrait ? pe.getPortraitIconUrl() : pe.getLandscapeIconUrl(), pe);
-            } else {
-                onSuccessLoadPhoto(photo, pe);
-            }
-        }
-    }
-
-    private void createRows(int countPhotos) {
-        int needRow;
-        if (currentIndex != 0) {
-            countPhotos -= countPhotoInLine - currentIndex;
-        }
-        needRow = (int) Math.ceil((double) countPhotos / countPhotoInLine);
-        for (int i = 0; i < needRow; i++) {
-            TableRow tr = newTableRow();
-            for (int j = 0; j < countPhotoInLine; j++) {
-                tr.addView(getActivity().getLayoutInflater().inflate(R.layout.icon_of_photo, tr, false), j);
-            }
-            table.addView(tr);
-        }
-    }
-
     @Override
-    public synchronized void onSuccessLoadPhoto(Bitmap photo, final PhotoEntity pe) {
+    public synchronized void onSuccessLoadPhoto(Bitmap photo, PhotoEntity pe) {
         if (isPortrait) {
             pe.setPortraitIcon(photo);
         } else {
             pe.setLandscapeIcon(photo);
         }
-        initIconOfPhoto(((TableRow) table.getChildAt(currentLine)).getChildAt(currentIndex), photo, pe.getOrigUrl());
-        currentIndex++;
-        if (currentLine * countPhotoInLine + currentIndex == photos.size()) {
-            if (scroll.getChildAt(scroll.getChildCount() - 1).getBottom() < heightScreen) {
-                PhotoEntity lastPe = photos.get(photos.size() - 1);
-                loader.getInfoAboutPhoto(typeOfDelivery, fieldForTime, lastPe.getTime(), lastPe.getId(), lastPe.getUid(), count + 1);
-            } else {
-                isLoading = false;
-                changeStateInEmptyIcon(View.INVISIBLE);
-            }
-        }
-        if (currentIndex == countPhotoInLine) {
-            currentLine++;
-            currentIndex = 0;
-        }
+        adapter.setPhotoEntities(photos);
     }
 
     @Override
     public synchronized void onFailedLoadPhoto(PhotoEntity pe) {
-        if (notLoadedPhotos == null) {
-            notLoadedPhotos = new ArrayList<>();
-        }
-        notLoadedPhotos.add(pe);
-        if (photos.size() == notLoadedPhotos.size() && table.getChildCount() == 1) {
-            table.removeView(loadingRow);
-            table.addView(errorRow);
-        } else {
-            //удаляем пустые строки
-        }
+
     }
 
     @Override
     public void onSuccessLoadInfoAboutPhoto(List<PhotoEntity> photos) {
-        table.removeView(loadingRow);
-        if (this.photos == null) {
-            this.photos = photos;
-            showPhotos(photos);
-        } else if (photos.size() > 1) {
-            photos.remove(0);
-            this.photos.addAll(photos);
-            showPhotos(photos);
-        } else {
-            isLoading = false;
-            if (currentIndex != 0) {
-                changeStateInEmptyIcon(View.INVISIBLE);
-            }
+        this.photos.addAll(photos);
+        for (PhotoEntity pe : photos) {
+            loader.getPhoto(isPortrait ? pe.getPortraitIconUrl() : pe.getLandscapeIconUrl(), pe);
         }
     }
 
     @Override
     public void onFailedLoadInfoAboutPhoto() {
-        if (photos == null) {
-            table.removeView(loadingRow);
-            table.addView(errorRow);
-        } else {
-            isLoading = false;
-            if (currentIndex == 0) {
-                table.removeView(loadingRow);
-            } else {
-                changeStateInEmptyIcon(View.INVISIBLE);
-            }
-        }
+
     }
 }

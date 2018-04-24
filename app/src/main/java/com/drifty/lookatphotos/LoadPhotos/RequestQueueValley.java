@@ -9,7 +9,7 @@ public class RequestQueueValley {
     private static RequestQueue instance;
 
     public static RequestQueue getInstance(Context context) {
-        if(instance == null){
+        if (instance == null) {
             instance = Volley.newRequestQueue(context);
         }
         return instance;
