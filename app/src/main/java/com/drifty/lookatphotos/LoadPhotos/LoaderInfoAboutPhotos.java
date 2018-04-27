@@ -9,6 +9,8 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.drifty.lookatphotos.LoadPhotos.Tools.CalculatorSizeOfPhoto;
+import com.drifty.lookatphotos.LoadPhotos.Tools.PhotoEntity;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -27,6 +29,7 @@ public class LoaderInfoAboutPhotos {
     private final static HashMap<String, String> headers = new HashMap<>(1);
     private CallBack cb;
     private CalculatorSizeOfPhoto csop;
+    private String typeOfPhotos;
 
     public LoaderInfoAboutPhotos(RequestQueue rq, String typeOfPhotos, CalculatorSizeOfPhoto csop, CallBack cb) {
         this.rq = rq;
@@ -36,6 +39,7 @@ public class LoaderInfoAboutPhotos {
         headers.put("Accept", "application/json");
         this.cb = cb;
         this.csop = csop;
+        this.typeOfPhotos = typeOfPhotos;
     }
 
     public void getInfoAboutPhoto(int count, String fieldForTime) {
@@ -58,6 +62,7 @@ public class LoaderInfoAboutPhotos {
                 cb.onFailedLoadPhoto(pe);
             }
         });
+        ir.setTag(typeOfPhotos);
         rq.add(ir);
     }
 
@@ -81,7 +86,7 @@ public class LoaderInfoAboutPhotos {
                         String landscapeIconUrl = getIconUrl(csop.getTypeOfSizeForLandscape(), img, href);
                         String orig = img.getJSONObject(csop.getMaxSize()).getString(href);
                         String time = obj.getString(fieldForTime);
-                        photos.add(new PhotoEntity(id, uid, portraitIconUrl, landscapeIconUrl, orig, time));
+                        photos.add(new PhotoEntity(id, uid, portraitIconUrl, landscapeIconUrl, orig, time, csop.getHeight()));
                     }
                     cb.onSuccessLoadInfoAboutPhoto(photos);
                 } catch (JSONException e) {
@@ -99,7 +104,12 @@ public class LoaderInfoAboutPhotos {
                 return headers;
             }
         };
+        jor.setTag(typeOfPhotos);
         rq.add(jor);
+    }
+
+    public void stopLoading() {
+        rq.cancelAll(typeOfPhotos);
     }
 
     private String getIconUrl(String typeOfSize, JSONObject img, String href) throws JSONException {

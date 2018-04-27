@@ -1,4 +1,4 @@
-package com.drifty.lookatphotos.LoadPhotos;
+package com.drifty.lookatphotos.LoadPhotos.Tools;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -14,6 +14,7 @@ public class CalculatorSizeOfPhoto {
     private String typeOfSizeForPortrait;
     private String minSize;
     private String maxSize;
+    private int height;
 
     public CalculatorSizeOfPhoto(int widthScreen, int heightScreen, int countPhotoInLine) {
         this.widthScreen = widthScreen;
@@ -39,6 +40,7 @@ public class CalculatorSizeOfPhoto {
             int height = obj.getInt("height");
             if (portraitPx < width && width <= possibleSizeForPortrait) {
                 portraitPx = width;
+                this.height = height;
                 typeOfSizeForPortrait = size;
             }
             if (landscapePx < width && width <= possibleSizeForLandscape) {
@@ -72,5 +74,9 @@ public class CalculatorSizeOfPhoto {
 
     public String getMaxSize() {
         return maxSize;
+    }
+
+    public int getHeight() {
+        return height;
     }
 }

@@ -20,7 +20,7 @@ import java.util.List;
 import com.drifty.lookatphotos.LoadPhotos.MetaData.TypeFieldForTime;
 import com.drifty.lookatphotos.LoadPhotos.MetaData.TypeOfDelivery;
 import com.drifty.lookatphotos.LoadPhotos.MetaData.TypeOfPhotos;
-import com.drifty.lookatphotos.LoadPhotos.RequestQueueValley;
+import com.drifty.lookatphotos.LoadPhotos.Tools.RequestQueueValley;
 
 public class MainActivity extends AppCompatActivity {
 

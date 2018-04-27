@@ -12,7 +12,7 @@ import android.widget.ProgressBar;
 import com.drifty.lookatphotos.ApplicationContext.PhotosCache;
 import com.drifty.lookatphotos.Fragments.TableOfPhotos;
 import com.drifty.lookatphotos.LoadPhotos.LoaderFullPhoto;
-import com.drifty.lookatphotos.LoadPhotos.RequestQueueValley;
+import com.drifty.lookatphotos.LoadPhotos.Tools.RequestQueueValley;
 import com.drifty.lookatphotos.R;
 
 public class ShowPhoto extends AppCompatActivity implements LoaderFullPhoto.CallBack {

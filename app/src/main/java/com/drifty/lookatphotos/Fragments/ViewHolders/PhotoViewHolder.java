@@ -1,4 +1,4 @@
-package com.drifty.lookatphotos.Fragments;
+package com.drifty.lookatphotos.Fragments.ViewHolders;
 
 import android.content.Context;
 import android.content.Intent;
@@ -8,6 +8,7 @@ import android.view.View;
 import android.widget.ImageView;
 
 import com.drifty.lookatphotos.Activities.ShowPhoto;
+import com.drifty.lookatphotos.Fragments.TableOfPhotos;
 import com.drifty.lookatphotos.R;
 
 public class PhotoViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {

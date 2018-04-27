@@ -1,4 +1,4 @@
-package com.drifty.lookatphotos.LoadPhotos;
+package com.drifty.lookatphotos.LoadPhotos.Tools;
 
 import android.content.Context;
 
