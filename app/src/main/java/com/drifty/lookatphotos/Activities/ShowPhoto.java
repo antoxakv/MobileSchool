@@ -1,19 +1,14 @@
 package com.drifty.lookatphotos.Activities;
 
 import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageSwitcher;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.ViewSwitcher;
-
 import com.drifty.lookatphotos.ApplicationContext.PhotosCache;
 import com.drifty.lookatphotos.LoadPhotos.LoaderFullPhoto;
 import com.drifty.lookatphotos.LoadPhotos.Tools.RequestQueueValley;
@@ -26,7 +21,7 @@ public class ShowPhoto extends AppCompatActivity implements LoaderFullPhoto.Call
     public static final String URLS = "urls";
     public static final String POSITION = "position";
 
-    private ImageSwitcher imageSwitcher;
+    private ImageView imageView;
     private ProgressBar progressBar;
     private Bitmap photo;
     private LoaderFullPhoto lfp;
@@ -40,7 +35,7 @@ public class ShowPhoto extends AppCompatActivity implements LoaderFullPhoto.Call
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_show_photo);
-        initImageSwitcher();
+        initImageView();
         initNotificationOfError();
         progressBar = findViewById(R.id.progressBar);
         photosCache = (PhotosCache) getApplicationContext();
@@ -54,7 +49,7 @@ public class ShowPhoto extends AppCompatActivity implements LoaderFullPhoto.Call
             photosUrls = savedInstanceState.getStringArrayList(URLS);
         }
         if (photo != null) {
-            imageSwitcher.setImageDrawable(new BitmapDrawable(getResources(), photo));
+            imageView.setImageBitmap(photo);
             progressBar.setVisibility(View.INVISIBLE);
         } else {
             lfp.getPhoto(photosUrls.get(position));
@@ -74,21 +69,9 @@ public class ShowPhoto extends AppCompatActivity implements LoaderFullPhoto.Call
         });
     }
 
-    private void initImageSwitcher() {
-        imageSwitcher = findViewById(R.id.imageSwitcher);
-        imageSwitcher.setLayerType(View.LAYER_TYPE_HARDWARE, null);
-        imageSwitcher.setFactory(new ViewSwitcher.ViewFactory() {
-            @Override
-            public View makeView() {
-                ImageView imageView = new ImageView(ShowPhoto.this);
-                imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
-                imageView.setLayoutParams(new
-                        ImageSwitcher.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
-                return imageView;
-            }
-        });
-        imageSwitcher.setOnTouchListener(new View.OnTouchListener() {
+    private void initImageView() {
+        imageView = findViewById(R.id.imageView);
+        imageView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
                 switch (motionEvent.getAction()) {
@@ -107,7 +90,7 @@ public class ShowPhoto extends AppCompatActivity implements LoaderFullPhoto.Call
                             positionChanged = true;
                         }
                         if (positionChanged) {
-                            imageSwitcher.setImageDrawable(null);
+                            imageView.setImageBitmap(null);
                             progressBar.setVisibility(View.VISIBLE);
                             lfp.getPhoto(photosUrls.get(position));
                         }
@@ -135,7 +118,7 @@ public class ShowPhoto extends AppCompatActivity implements LoaderFullPhoto.Call
     @Override
     public void onSuccessLoadPhoto(Bitmap photo) {
         this.photo = photo;
-        imageSwitcher.setImageDrawable(new BitmapDrawable(getResources(), photo));
+        imageView.setImageBitmap(photo);
         progressBar.setVisibility(View.INVISIBLE);
     }
 
