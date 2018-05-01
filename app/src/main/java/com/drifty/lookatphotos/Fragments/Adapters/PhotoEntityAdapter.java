@@ -34,6 +34,7 @@ public class PhotoEntityAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
             @Override
             public void onChanged() {
                 super.onChanged();
+                photosUrls.clear();
                 for (PhotoEntity pe : photoEntities) {
                     photosUrls.add(pe.getOrigUrl());
                 }
@@ -44,7 +45,9 @@ public class PhotoEntityAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
                 super.onItemRangeChanged(positionStart, itemCount);
                 while (itemCount > 0) {
                     PhotoEntity pe = photoEntities.get(positionStart);
-                    photosUrls.set(positionStart, pe == null ? null : pe.getOrigUrl());
+                    if (pe != null) {
+                        photosUrls.set(positionStart, pe.getOrigUrl());
+                    }
                     itemCount--;
                     positionStart++;
                 }
@@ -55,7 +58,9 @@ public class PhotoEntityAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
                 super.onItemRangeInserted(positionStart, itemCount);
                 while (itemCount > 0) {
                     PhotoEntity pe = photoEntities.get(positionStart);
-                    photosUrls.add(positionStart, pe == null ? null : pe.getOrigUrl());
+                    if (pe != null) {
+                        photosUrls.add(positionStart, pe.getOrigUrl());
+                    }
                     itemCount--;
                     positionStart++;
                 }

@@ -8,7 +8,6 @@ import android.view.View;
 import android.widget.ImageView;
 
 import com.drifty.lookatphotos.Activities.ShowPhoto;
-import com.drifty.lookatphotos.Fragments.TableOfPhotos;
 import com.drifty.lookatphotos.R;
 
 import java.util.ArrayList;

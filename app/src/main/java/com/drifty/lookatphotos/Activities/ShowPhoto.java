@@ -1,15 +1,18 @@
 package com.drifty.lookatphotos.Activities;
 
 import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageSwitcher;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.ViewSwitcher;
 
 import com.drifty.lookatphotos.ApplicationContext.PhotosCache;
 import com.drifty.lookatphotos.LoadPhotos.LoaderFullPhoto;
@@ -23,7 +26,7 @@ public class ShowPhoto extends AppCompatActivity implements LoaderFullPhoto.Call
     public static final String URLS = "urls";
     public static final String POSITION = "position";
 
-    private ImageView photoView;
+    private ImageSwitcher imageSwitcher;
     private ProgressBar progressBar;
     private Bitmap photo;
     private LoaderFullPhoto lfp;
@@ -37,7 +40,7 @@ public class ShowPhoto extends AppCompatActivity implements LoaderFullPhoto.Call
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_show_photo);
-        initPhotoView();
+        initImageSwitcher();
         initNotificationOfError();
         progressBar = findViewById(R.id.progressBar);
         photosCache = (PhotosCache) getApplicationContext();
@@ -51,7 +54,7 @@ public class ShowPhoto extends AppCompatActivity implements LoaderFullPhoto.Call
             photosUrls = savedInstanceState.getStringArrayList(URLS);
         }
         if (photo != null) {
-            photoView.setImageBitmap(photo);
+            imageSwitcher.setImageDrawable(new BitmapDrawable(getResources(), photo));
             progressBar.setVisibility(View.INVISIBLE);
         } else {
             lfp.getPhoto(photosUrls.get(position));
@@ -71,9 +74,21 @@ public class ShowPhoto extends AppCompatActivity implements LoaderFullPhoto.Call
         });
     }
 
-    private void initPhotoView() {
-        photoView = findViewById(R.id.photo);
-        photoView.setOnTouchListener(new View.OnTouchListener() {
+    private void initImageSwitcher() {
+        imageSwitcher = findViewById(R.id.imageSwitcher);
+        imageSwitcher.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+        imageSwitcher.setFactory(new ViewSwitcher.ViewFactory() {
+            @Override
+            public View makeView() {
+                ImageView imageView = new ImageView(ShowPhoto.this);
+                imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                imageView.setLayoutParams(new
+                        ImageSwitcher.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
+                return imageView;
+            }
+        });
+        imageSwitcher.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
                 switch (motionEvent.getAction()) {
@@ -83,13 +98,16 @@ public class ShowPhoto extends AppCompatActivity implements LoaderFullPhoto.Call
                     case MotionEvent.ACTION_UP:
                     case MotionEvent.ACTION_CANCEL:
                         float direction = startX - motionEvent.getX();
-                        if (direction > 0) {
+                        boolean positionChanged = false;
+                        if (direction > 0 && position != photosUrls.size() - 1) {
                             position++;
-                        } else if (direction < 0) {
+                            positionChanged = true;
+                        } else if (direction < 0 && position != 0) {
                             position--;
+                            positionChanged = true;
                         }
-                        if (-1 < position && position < photosUrls.size()) {
-                            photoView.setVisibility(View.INVISIBLE);
+                        if (positionChanged) {
+                            imageSwitcher.setImageDrawable(null);
                             progressBar.setVisibility(View.VISIBLE);
                             lfp.getPhoto(photosUrls.get(position));
                         }
@@ -117,8 +135,7 @@ public class ShowPhoto extends AppCompatActivity implements LoaderFullPhoto.Call
     @Override
     public void onSuccessLoadPhoto(Bitmap photo) {
         this.photo = photo;
-        this.photoView.setImageBitmap(photo);
-        this.photoView.setVisibility(View.VISIBLE);
+        imageSwitcher.setImageDrawable(new BitmapDrawable(getResources(), photo));
         progressBar.setVisibility(View.INVISIBLE);
     }
 
