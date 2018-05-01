@@ -11,23 +11,28 @@ import com.drifty.lookatphotos.Activities.ShowPhoto;
 import com.drifty.lookatphotos.Fragments.TableOfPhotos;
 import com.drifty.lookatphotos.R;
 
+import java.util.ArrayList;
+
 public class PhotoViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
     private ImageView photoView;
-    private String url;
+    private int position;
     private Context context;
+    private ArrayList<String> photosUrls;
 
-    public PhotoViewHolder(View itemView, Context context) {
+    public PhotoViewHolder(View itemView, Context context, ArrayList<String> photosUrls) {
         super(itemView);
         photoView = itemView.findViewById(R.id.photo);
         itemView.setOnClickListener(this);
         this.context = context;
+        this.photosUrls = photosUrls;
     }
 
     @Override
     public void onClick(View view) {
         Intent intent = new Intent(context, ShowPhoto.class);
-        intent.putExtra(TableOfPhotos.URL, url);
+        intent.putExtra(ShowPhoto.POSITION, position);
+        intent.putExtra(ShowPhoto.URLS, photosUrls);
         context.startActivity(intent);
     }
 
@@ -35,8 +40,8 @@ public class PhotoViewHolder extends RecyclerView.ViewHolder implements View.OnC
         photoView.setImageBitmap(photoBitmap);
     }
 
-    public void setUrl(String url) {
-        this.url = url;
+    public void setPosition(int position) {
+        this.position = position;
     }
 
 }

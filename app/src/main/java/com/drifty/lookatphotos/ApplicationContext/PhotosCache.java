@@ -9,9 +9,9 @@ import java.util.HashMap;
 import java.util.List;
 
 public class PhotosCache extends Application {
-    private HashMap<String, List<PhotoEntity>> map = new HashMap<>();
+    private HashMap<String, List<PhotoEntity>> listPhotoEntities = new HashMap<>();
     private Bitmap currentPhoto;
-    private PhotoEntity lastPhotoByTime;
+    private HashMap<String, PhotoEntity> lastPhotoByTime = new HashMap<>();
 
     public Bitmap getCurrentPhoto() {
         return currentPhoto;
@@ -22,18 +22,18 @@ public class PhotosCache extends Application {
     }
 
     public void setListPhotoEntity(String type, List<PhotoEntity> list) {
-        map.put(type, list);
+        listPhotoEntities.put(type, list);
     }
 
     public List<PhotoEntity> getListPhotoEntity(String type) {
-        return map.get(type);
+        return listPhotoEntities.get(type);
     }
 
-    public PhotoEntity getLastPhotoByTime() {
-        return lastPhotoByTime;
+    public void setLastPhotoByTime(String type, PhotoEntity photo) {
+        lastPhotoByTime.put(type, photo);
     }
 
-    public void setLastPhotoByTime(PhotoEntity lastPhotoByTime) {
-        this.lastPhotoByTime = lastPhotoByTime;
+    public PhotoEntity getLastPhotosByTime(String type) {
+        return lastPhotoByTime.get(type);
     }
 }

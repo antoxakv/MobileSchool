@@ -22,6 +22,10 @@ import com.drifty.lookatphotos.LoadPhotos.MetaData.TypeOfDelivery;
 import com.drifty.lookatphotos.LoadPhotos.MetaData.TypeOfPhotos;
 import com.drifty.lookatphotos.LoadPhotos.Tools.RequestQueueValley;
 
+/*
+adb -e shell svc data disable
+adb -e shell svc data enable
+*/
 public class MainActivity extends AppCompatActivity {
 
     private int countPhotoInLine = 2;

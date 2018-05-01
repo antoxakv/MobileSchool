@@ -2,19 +2,20 @@ package com.drifty.lookatphotos.Fragments;
 
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 
 import com.drifty.lookatphotos.ApplicationContext.PhotosCache;
 import com.drifty.lookatphotos.Fragments.Adapters.PhotoEntityAdapter;
 import com.drifty.lookatphotos.R;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -33,20 +34,19 @@ public class TableOfPhotos extends Fragment implements LoaderInfoAboutPhotos.Cal
     private String fieldForTime;
 
     private List<PhotoEntity> photos;
+    private int expectPhotos;
+    private List<PhotoEntity> errorPhotos;
+    private PhotoEntity lastPhotoByTime;
 
     private LoaderInfoAboutPhotos loader;
     private PhotosCache photosCache;
-
-    public final static String URL = "url";
 
     private RecyclerView recyclerView;
     private PhotoEntityAdapter adapter;
 
     private boolean isLoading;
 
-    private int expectPhotos;
-    private List<PhotoEntity> errorPhotos;
-    private PhotoEntity lastPhotoByTime;
+    private ConstraintLayout notificationOfError;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -66,34 +66,62 @@ public class TableOfPhotos extends Fragment implements LoaderInfoAboutPhotos.Cal
                 countPhotoInLine);
         loader = new LoaderInfoAboutPhotos(RequestQueueValley.getInstance(), typeOfPhotos, csop, this);
         photosCache = (PhotosCache) getActivity().getApplicationContext();
-
         isLoading = true;
         photos = new ArrayList<>();
         photos.add(null);
         initRecyclerView(fragView, countPhotoInLine);
-        if (savedInstanceState == null) {
+        loadPhotos(savedInstanceState == null);
+        initNotificationOfError(fragView);
+        return fragView;
+    }
+
+    private void initNotificationOfError(final View fragView) {
+        notificationOfError = fragView.findViewById(R.id.notification_of_error);
+        Button repeatBtn = notificationOfError.findViewById(R.id.repeatBtn);
+        repeatBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                notificationOfError.setVisibility(View.INVISIBLE);
+                isLoading = true;
+                photos.add(null);
+                adapter.notifyItemChanged(0);
+                loader.getInfoAboutPhoto(count, fieldForTime);
+            }
+        });
+    }
+
+    private void loadPhotos(boolean savedInstanceStateIsNull) {
+        if (savedInstanceStateIsNull) {
             loader.getInfoAboutPhoto(count, fieldForTime);
         } else {
-            lastPhotoByTime = photosCache.getLastPhotoByTime();
+            lastPhotoByTime = photosCache.getLastPhotosByTime(typeOfPhotos);
             List<PhotoEntity> savedPhoto = photosCache.getListPhotoEntity(typeOfPhotos);
             if (savedPhoto != null && !savedPhoto.isEmpty()) {
-                expectPhotos = savedPhoto.size();
                 photos.addAll(getLastIndexOfPhotos(), savedPhoto);
-                for (PhotoEntity pe : savedPhoto) {
-                    if (getCurrentIcon(pe) == null) {
-                        loader.getPhoto(getCurrentUrl(pe), pe);
-                    } else {
-                        photos.remove(getLastIndexOfPhotos());
-                        adapter.notifyDataSetChanged();
-                        isLoading = false;
+                int startIndexForLoad = -1;
+                //Поиск фотографий, у которых нету иконок для нужной ориентации экрана.
+                for (int i = 0; i < getLastIndexOfPhotos(); i++) {
+                    if (getCurrentIcon(photos.get(i)) == null) {
+                        startIndexForLoad = i;
                         break;
+                    }
+                }
+                if (startIndexForLoad == -1) {
+                    photos.remove(getLastIndexOfPhotos());
+                    isLoading = false;
+                    adapter.notifyDataSetChanged();
+                } else {
+                    //Загрузка недостающих иконок.
+                    expectPhotos = photos.size() - startIndexForLoad - 1;
+                    for (int i = startIndexForLoad; i < getLastIndexOfPhotos(); i++) {
+                        PhotoEntity pe = photos.get(i);
+                        loader.getPhoto(getCurrentUrl(pe), pe);
                     }
                 }
             } else {
                 loader.getInfoAboutPhoto(count, fieldForTime);
             }
         }
-        return fragView;
     }
 
     private void initRecyclerView(View fragView, int countPhotoInLine) {
@@ -123,7 +151,7 @@ public class TableOfPhotos extends Fragment implements LoaderInfoAboutPhotos.Cal
                 super.onScrolled(recyclerView, dx, dy);
                 int totalItemCount = glm.getItemCount();
                 int lastVisibleItem = glm.findLastVisibleItemPosition();
-                if (!isLoading && totalItemCount - 1 == lastVisibleItem) {
+                if (!isLoading && totalItemCount - 1 == lastVisibleItem && photos.size() > 0) {
                     isLoading = true;
                     photos.add(null);
                     recyclerView.post(new Runnable() {
@@ -136,17 +164,34 @@ public class TableOfPhotos extends Fragment implements LoaderInfoAboutPhotos.Cal
                 }
             }
         });
+        recyclerView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                //Если фотографий загрузилось недостаточно и полезователь начал совершать движение по recyclerView,
+                //то пытаемся загрузить ещё фото.
+                boolean isHandled = false;
+                if (!isLoading && glm.findLastCompletelyVisibleItemPosition() == adapter.getItemCount() - 1 &&
+                        !recyclerView.canScrollVertically(-1)) {
+                    isLoading = true;
+                    isHandled = true;
+                    photos.add(null);
+                    adapter.notifyItemInserted(getLastIndexOfPhotos());
+                    //loader.getInfoAboutPhoto(typeOfDelivery, fieldForTime, lastPhotoByTime.getTime(), lastPhotoByTime.getId(), lastPhotoByTime.getUid(), count + 1);
+                }
+                return isHandled;
+            }
+        });
     }
 
     @Override
-    public void onDestroyView() {
-        super.onDestroyView();
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
         loader.stopLoading();
         if (photos.size() > 1) {
             if (photos.get(getLastIndexOfPhotos()) == null) {
                 photos.remove(getLastIndexOfPhotos());
             }
-            photosCache.setLastPhotoByTime(lastPhotoByTime);
+            photosCache.setLastPhotoByTime(typeOfPhotos, lastPhotoByTime);
             photosCache.setListPhotoEntity(typeOfPhotos, photos);
         }
     }
@@ -169,38 +214,36 @@ public class TableOfPhotos extends Fragment implements LoaderInfoAboutPhotos.Cal
     }
 
     private void photosLoaded() {
-        if (expectPhotos == errorPhotos.size()) {
-            expectPhotos = 0;
+        if (expectPhotos == errorPhotos.size()) { //Удаляем информацию о фотографиях, которые не смогли загрузить
+            if (getLastIndexOfPhotos() == errorPhotos.size()) { //Если все фото не смогли загрузиться, то показываем notificationOfError.
+                notificationOfError.setVisibility(View.VISIBLE);
+            }
             photos.remove(getLastIndexOfPhotos());
             photos.removeAll(errorPhotos);
             errorPhotos.clear();
-            lastPhotoByTime = photos.get(getLastIndexOfPhotos());
-            for (int i = photos.size() - 2; i >= 0 && i > photos.size() - count; i--) {
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-                try {
-                    if (sdf.parse(lastPhotoByTime.getTime()).compareTo(sdf.parse(photos.get(i).getTime())) > 0) {
-                        lastPhotoByTime = photos.get(i);
-                    }
-                } catch (ParseException e) {
-
-                }
-            }
             adapter.notifyDataSetChanged();
             isLoading = false;
+            expectPhotos = 0;
         }
     }
 
     @Override
     public void onSuccessLoadInfoAboutPhoto(List<PhotoEntity> photos) {
+        //При запросе новых фотографий (при пролиставнии вниз), так же возращается фотография от которой строился
+        //запрос, так как она уже отображена на эране, удаляем её.
         if (this.photos.size() > 1) {
             photos.remove(0);
         }
+        //Убираем индикатор загрузки, если лист получился пустым.
         if (photos.isEmpty()) {
-            this.photos.remove(getLastIndexOfPhotos());
-            adapter.notifyDataSetChanged();
+            int i = getLastIndexOfPhotos();
+            this.photos.remove(i);
+            adapter.notifyItemRemoved(i);
             isLoading = false;
         } else {
             expectPhotos = photos.size();
+            lastPhotoByTime = photos.get(expectPhotos - 1);
+            //Сортируем фотографии в списке для более красивого отображения на экране.
             Collections.sort(photos, new Comparator<PhotoEntity>() {
                 @Override
                 public int compare(PhotoEntity pe1, PhotoEntity pe2) {
@@ -217,10 +260,12 @@ public class TableOfPhotos extends Fragment implements LoaderInfoAboutPhotos.Cal
     @Override
     public void onFailedLoadInfoAboutPhoto() {
         if (photos.size() == 1) {
-
-        } else {
-
+            notificationOfError.setVisibility(View.VISIBLE);
         }
+        int i = getLastIndexOfPhotos();
+        isLoading = false;
+        photos.remove(i);
+        adapter.notifyItemChanged(i);
     }
 
     private String getCurrentUrl(PhotoEntity pe) {

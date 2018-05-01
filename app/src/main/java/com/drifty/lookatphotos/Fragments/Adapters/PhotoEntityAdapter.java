@@ -10,23 +10,66 @@ import com.drifty.lookatphotos.Fragments.ViewHolders.PhotoViewHolder;
 import com.drifty.lookatphotos.LoadPhotos.Tools.PhotoEntity;
 import com.drifty.lookatphotos.R;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class PhotoEntityAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private LayoutInflater inflater;
     private List<PhotoEntity> photoEntities;
+    private ArrayList<String> photosUrls;
     private boolean isPortrait;
     private Context context;
 
     public final static int PHOTO_VIEW = 0;
     public final static int LOADING_VIEW = 1;
 
-    public PhotoEntityAdapter(Context context, List<PhotoEntity> photoEntities, boolean isPortrait) {
+    public PhotoEntityAdapter(Context context, final List<PhotoEntity> photoEntities, boolean isPortrait) {
         inflater = LayoutInflater.from(context);
         this.photoEntities = photoEntities;
         this.isPortrait = isPortrait;
         this.context = context;
+        photosUrls = new ArrayList<>(photoEntities.size());
+        registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
+            @Override
+            public void onChanged() {
+                super.onChanged();
+                for (PhotoEntity pe : photoEntities) {
+                    photosUrls.add(pe.getOrigUrl());
+                }
+            }
+
+            @Override
+            public void onItemRangeChanged(int positionStart, int itemCount) {
+                super.onItemRangeChanged(positionStart, itemCount);
+                while (itemCount > 0) {
+                    PhotoEntity pe = photoEntities.get(positionStart);
+                    photosUrls.set(positionStart, pe == null ? null : pe.getOrigUrl());
+                    itemCount--;
+                    positionStart++;
+                }
+            }
+
+            @Override
+            public void onItemRangeInserted(int positionStart, int itemCount) {
+                super.onItemRangeInserted(positionStart, itemCount);
+                while (itemCount > 0) {
+                    PhotoEntity pe = photoEntities.get(positionStart);
+                    photosUrls.add(positionStart, pe == null ? null : pe.getOrigUrl());
+                    itemCount--;
+                    positionStart++;
+                }
+            }
+
+            @Override
+            public void onItemRangeRemoved(int positionStart, int itemCount) {
+                super.onItemRangeRemoved(positionStart, itemCount);
+                while (itemCount > 0) {
+                    photosUrls.remove(positionStart);
+                    itemCount--;
+                }
+            }
+        });
     }
 
     @Override
@@ -34,7 +77,7 @@ public class PhotoEntityAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         RecyclerView.ViewHolder viewHolder = null;
         switch (viewType) {
             case PHOTO_VIEW:
-                viewHolder = new PhotoViewHolder(inflater.inflate(R.layout.icon_of_photo, parent, false), context);
+                viewHolder = new PhotoViewHolder(inflater.inflate(R.layout.icon_of_photo, parent, false), context, photosUrls);
                 break;
             case LOADING_VIEW:
                 viewHolder = new LoadingViewHolder(inflater.inflate(R.layout.item_loading, parent, false));
@@ -47,7 +90,7 @@ public class PhotoEntityAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         if (holder instanceof PhotoViewHolder) {
             PhotoViewHolder pvh = (PhotoViewHolder) holder;
             PhotoEntity photo = photoEntities.get(position);
-            pvh.setUrl(photo.getOrigUrl());
+            pvh.setPosition(position);
             pvh.setPhoto(isPortrait ? photo.getPortraitIcon() : photo.getLandscapeIcon());
         }
     }
