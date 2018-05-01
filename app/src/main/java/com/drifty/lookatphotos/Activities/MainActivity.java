@@ -12,14 +12,12 @@ import android.view.Surface;
 
 import com.drifty.lookatphotos.Fragments.BundleFields;
 import com.drifty.lookatphotos.Fragments.TableOfPhotos;
+import com.drifty.lookatphotos.LoadPhotos.LoaderInfoAboutPhotos;
 import com.drifty.lookatphotos.R;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import com.drifty.lookatphotos.LoadPhotos.MetaData.TypeFieldForTime;
-import com.drifty.lookatphotos.LoadPhotos.MetaData.TypeOfDelivery;
-import com.drifty.lookatphotos.LoadPhotos.MetaData.TypeOfPhotos;
 import com.drifty.lookatphotos.LoadPhotos.Tools.RequestQueueValley;
 
 /*
@@ -63,10 +61,10 @@ public class MainActivity extends AppCompatActivity {
                 Fragment f = null;
                 switch (position) {
                     case 0:
-                        f = newTablePhotos(TypeOfDelivery.UPDATED, TypeOfPhotos.NEW_INTERESTING_PHOTOS, TypeFieldForTime.UPDATED);
+                        f = newTablePhotos(LoaderInfoAboutPhotos.DELIVERY_AND_FIELD, LoaderInfoAboutPhotos.NEW_INTERESTING_PHOTOS, LoaderInfoAboutPhotos.DELIVERY_AND_FIELD);
                         break;
                     case 1:
-                        f = newTablePhotos(TypeOfDelivery.UPDATED, TypeOfPhotos.POPULAR_PHOTOS, TypeFieldForTime.UPDATED);
+                        f = newTablePhotos(LoaderInfoAboutPhotos.DELIVERY_AND_FIELD, LoaderInfoAboutPhotos.POPULAR_PHOTOS, LoaderInfoAboutPhotos.DELIVERY_AND_FIELD);
                 }
                 return f;
             }

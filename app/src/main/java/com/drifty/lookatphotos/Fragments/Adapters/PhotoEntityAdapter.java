@@ -65,15 +65,6 @@ public class PhotoEntityAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
                     positionStart++;
                 }
             }
-
-            @Override
-            public void onItemRangeRemoved(int positionStart, int itemCount) {
-                super.onItemRangeRemoved(positionStart, itemCount);
-                while (itemCount > 0) {
-                    photosUrls.remove(positionStart);
-                    itemCount--;
-                }
-            }
         });
     }
 

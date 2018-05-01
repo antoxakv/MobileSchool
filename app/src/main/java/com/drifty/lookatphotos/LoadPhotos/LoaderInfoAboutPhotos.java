@@ -23,6 +23,10 @@ import java.util.Map;
 
 public class LoaderInfoAboutPhotos {
 
+    public static final String NEW_INTERESTING_PHOTOS = "recent";
+    public static final String POPULAR_PHOTOS = "top";
+    public static final String DELIVERY_AND_FIELD = "updated";
+
     private RequestQueue rq;
     private String urlForList;
     private String url;
