@@ -20,11 +20,12 @@ public class PhotoEntityAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     private ArrayList<String> photosUrls;
     private boolean isPortrait;
     private Context context;
+    private boolean isClickable;
 
     public final static int PHOTO_VIEW = 0;
     public final static int LOADING_VIEW = 1;
 
-    public PhotoEntityAdapter(Context context, final List<PhotoEntity> photoEntities, boolean isPortrait) {
+    public PhotoEntityAdapter(Context context, final List<PhotoEntity> photoEntities, final boolean isPortrait) {
         inflater = LayoutInflater.from(context);
         this.photoEntities = photoEntities;
         this.isPortrait = isPortrait;
@@ -34,8 +35,23 @@ public class PhotoEntityAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
             @Override
             public void onChanged() {
                 photosUrls.clear();
+                isClickable = true;
                 for (PhotoEntity pe : photoEntities) {
                     photosUrls.add(pe.getOrigUrl());
+                }
+            }
+
+            @Override
+            public void onItemRangeInserted(int positionStart, int itemCount) {
+                if (itemCount == 1 && photoEntities.get(positionStart) == null) {
+                    isClickable = false;
+                }
+            }
+
+            @Override
+            public void onItemRangeRemoved(int positionStart, int itemCount) {
+                if (itemCount == 1 && photoEntities.get(positionStart) == null) {
+                    isClickable = true;
                 }
             }
         });
