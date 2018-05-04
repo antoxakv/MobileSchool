@@ -1,5 +1,6 @@
 package com.drifty.lookatphotos.Activities;
 
+import android.annotation.SuppressLint;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.constraint.ConstraintLayout;
@@ -69,6 +70,7 @@ public class ShowPhoto extends AppCompatActivity implements LoaderFullPhoto.Call
         });
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private void initImageView() {
         imageView = findViewById(R.id.imageView);
         imageView.setOnTouchListener(new View.OnTouchListener() {

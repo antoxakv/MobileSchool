@@ -1,7 +1,7 @@
 <resources>
-    <string name="app_name">Look at photos</string>
-    <string name="interesting">Интересное</string>
-    <string name="popular">Популярное</string>
-    <string name="error">Произошла ошибка при загрузке</string>
-    <string name="repeat">Повторить</string>
+    <string name="app_name">Ya.Photos collections</string>
+    <string name="interesting">Interesting</string>
+    <string name="popular">Popular</string>
+    <string name="error">An error occurred while uploading photos</string>
+    <string name="repeat">Try again</string>
 </resources>

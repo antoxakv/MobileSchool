@@ -1,4 +1,4 @@
-package com.drifty.lookatphotos.Fragments;
+package com.drifty.lookatphotos.Fragments.MetaData;
 
 public interface BundleFields {
     String WIDTH_SCREEN = "widthScreen";

@@ -33,36 +33,9 @@ public class PhotoEntityAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
             @Override
             public void onChanged() {
-                super.onChanged();
                 photosUrls.clear();
                 for (PhotoEntity pe : photoEntities) {
                     photosUrls.add(pe.getOrigUrl());
-                }
-            }
-
-            @Override
-            public void onItemRangeChanged(int positionStart, int itemCount) {
-                super.onItemRangeChanged(positionStart, itemCount);
-                while (itemCount > 0) {
-                    PhotoEntity pe = photoEntities.get(positionStart);
-                    if (pe != null) {
-                        photosUrls.set(positionStart, pe.getOrigUrl());
-                    }
-                    itemCount--;
-                    positionStart++;
-                }
-            }
-
-            @Override
-            public void onItemRangeInserted(int positionStart, int itemCount) {
-                super.onItemRangeInserted(positionStart, itemCount);
-                while (itemCount > 0) {
-                    PhotoEntity pe = photoEntities.get(positionStart);
-                    if (pe != null) {
-                        photosUrls.add(positionStart, pe.getOrigUrl());
-                    }
-                    itemCount--;
-                    positionStart++;
                 }
             }
         });

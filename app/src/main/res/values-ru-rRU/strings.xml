@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Ya.Фотки коллекции</string>
+    <string name="interesting">Интересное</string>
+    <string name="popular">Популярное</string>
+    <string name="error">Произошла ошибка при загрузке фотографий</string>
+    <string name="repeat">Повторить</string>
+</resources>

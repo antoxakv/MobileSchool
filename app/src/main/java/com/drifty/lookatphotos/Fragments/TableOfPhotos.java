@@ -7,13 +7,13 @@ import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
 import com.drifty.lookatphotos.ApplicationContext.PhotosCache;
 import com.drifty.lookatphotos.Fragments.Adapters.PhotoEntityAdapter;
+import com.drifty.lookatphotos.Fragments.MetaData.BundleFields;
 import com.drifty.lookatphotos.R;
 
 import java.util.ArrayList;
@@ -84,7 +84,7 @@ public class TableOfPhotos extends Fragment implements LoaderInfoAboutPhotos.Cal
                 notificationOfError.setVisibility(View.INVISIBLE);
                 isLoading = true;
                 photos.add(null);
-                adapter.notifyItemChanged(0);
+                adapter.notifyItemInserted(0);
                 loader.getInfoAboutPhoto(count, fieldForTime);
             }
         });
@@ -164,23 +164,6 @@ public class TableOfPhotos extends Fragment implements LoaderInfoAboutPhotos.Cal
                 }
             }
         });
-        recyclerView.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
-                //Если фотографий загрузилось недостаточно и полезователь начал совершать движение по recyclerView,
-                //то пытаемся загрузить ещё фото.
-                boolean isHandled = false;
-                if (!isLoading && glm.findLastCompletelyVisibleItemPosition() == adapter.getItemCount() - 1 &&
-                        !recyclerView.canScrollVertically(-1)) {
-                    isLoading = true;
-                    isHandled = true;
-                    photos.add(null);
-                    adapter.notifyItemInserted(getLastIndexOfPhotos());
-                    //loader.getInfoAboutPhoto(typeOfDelivery, fieldForTime, lastPhotoByTime.getTime(), lastPhotoByTime.getId(), lastPhotoByTime.getUid(), count + 1);
-                }
-                return isHandled;
-            }
-        });
     }
 
     @Override
@@ -219,11 +202,13 @@ public class TableOfPhotos extends Fragment implements LoaderInfoAboutPhotos.Cal
                 notificationOfError.setVisibility(View.VISIBLE);
             }
             photos.remove(getLastIndexOfPhotos());
-            photos.removeAll(errorPhotos);
-            errorPhotos.clear();
+            if (expectPhotos != 0) {
+                photos.removeAll(errorPhotos);
+                errorPhotos.clear();
+                expectPhotos = 0;
+            }
             adapter.notifyDataSetChanged();
             isLoading = false;
-            expectPhotos = 0;
         }
     }
 
@@ -265,7 +250,7 @@ public class TableOfPhotos extends Fragment implements LoaderInfoAboutPhotos.Cal
         int i = getLastIndexOfPhotos();
         isLoading = false;
         photos.remove(i);
-        adapter.notifyItemChanged(i);
+        adapter.notifyItemRemoved(i);
     }
 
     private String getCurrentUrl(PhotoEntity pe) {

@@ -10,7 +10,7 @@ import android.os.Bundle;
 import android.view.Display;
 import android.view.Surface;
 
-import com.drifty.lookatphotos.Fragments.BundleFields;
+import com.drifty.lookatphotos.Fragments.MetaData.BundleFields;
 import com.drifty.lookatphotos.Fragments.TableOfPhotos;
 import com.drifty.lookatphotos.LoadPhotos.LoaderInfoAboutPhotos;
 import com.drifty.lookatphotos.R;
