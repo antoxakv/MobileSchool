@@ -35,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
         RequestQueueValley.getInstance(getApplicationContext());
         initSizeScreen();
         if (savedInstanceState != null) {
-            //увеломление фрагментов(TableOfPhotos) об изменении кофигурации
+            //увеломление фрагментов(TableOfPhotos) об изменении кофигурации.
             for (Fragment top : getSupportFragmentManager().getFragments()) {
                 Bundle bundle = top.getArguments();
                 top.setArguments(newBundleForArgs(bundle.getString(BundleFields.TYPE_OF_DELIVERY),
@@ -50,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
         final List<String> titleOfTableOfPhotos = new ArrayList<>(2);
         titleOfTableOfPhotos.add(getResources().getString(R.string.interesting));
         titleOfTableOfPhotos.add(getResources().getString(R.string.popular));
+        //Инициализация ViewPager и фраментов, которые в нем будут отображаться.
         ViewPager pager = findViewById(R.id.pager);
         FragmentPagerAdapter fpa = new FragmentPagerAdapter(getSupportFragmentManager()) {
             @Override

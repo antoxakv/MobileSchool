@@ -14,17 +14,17 @@ import android.widget.Button;
 import com.drifty.lookatphotos.ApplicationContext.PhotosCache;
 import com.drifty.lookatphotos.Fragments.Adapters.PhotoEntityAdapter;
 import com.drifty.lookatphotos.Fragments.MetaData.BundleFields;
+import com.drifty.lookatphotos.LoadPhotos.LoaderInfoAboutPhotos;
+import com.drifty.lookatphotos.LoadPhotos.Tools.CalculatorSizeOfPhoto;
+import com.drifty.lookatphotos.LoadPhotos.Tools.PhotoEntity;
+import com.drifty.lookatphotos.LoadPhotos.Tools.RequestQueueValley;
 import com.drifty.lookatphotos.R;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
-
-import com.drifty.lookatphotos.LoadPhotos.Tools.CalculatorSizeOfPhoto;
-import com.drifty.lookatphotos.LoadPhotos.LoaderInfoAboutPhotos;
-import com.drifty.lookatphotos.LoadPhotos.Tools.PhotoEntity;
-import com.drifty.lookatphotos.LoadPhotos.Tools.RequestQueueValley;
 
 public class TableOfPhotos extends Fragment implements LoaderInfoAboutPhotos.CallBack {
     private int count;
@@ -45,6 +45,7 @@ public class TableOfPhotos extends Fragment implements LoaderInfoAboutPhotos.Cal
     private PhotoEntityAdapter adapter;
 
     private boolean isLoading;
+    private boolean continueLoading;
 
     private ConstraintLayout notificationOfError;
 
@@ -121,6 +122,47 @@ public class TableOfPhotos extends Fragment implements LoaderInfoAboutPhotos.Cal
             } else {
                 loader.getInfoAboutPhoto(count, fieldForTime);
             }
+        }
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        //Если загрузка была прервана, то снова загружаем фотографии.
+        if (continueLoading) {
+            continueLoading = false;
+            if (getLastIndexOfPhotos() > 0) {
+                //При отсутсвие LoadingViewHolder проиходит его добавление.
+                if (photos.get(getLastIndexOfPhotos()) != null) {
+                    photos.add(null);
+                }
+                Iterator<PhotoEntity> iterator = photos.iterator();
+                boolean wasNull = false;
+                while (iterator.hasNext()) {
+                    PhotoEntity pe = iterator.next();
+                    if (pe != null && getCurrentIcon(pe) == null) {
+                        loader.getPhoto(getCurrentUrl(pe), pe);
+                        wasNull = true;
+                    }
+                }
+                if (!wasNull) {
+                    photos.remove(getLastIndexOfPhotos());
+                    adapter.notifyDataSetChanged();
+                    isLoading = false;
+                }
+            } else {
+                loader.getInfoAboutPhoto(count, fieldForTime);
+            }
+        }
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (isLoading) {
+            //Если во время загрузки фото произошел переход в состояние stopped, то загрузка осталанвливается.
+            loader.stopLoading();
+            continueLoading = true;
         }
     }
 
@@ -228,7 +270,7 @@ public class TableOfPhotos extends Fragment implements LoaderInfoAboutPhotos.Cal
         } else {
             expectPhotos = photos.size();
             lastPhotoByTime = photos.get(expectPhotos - 1);
-            //Сортируем фотографии в списке для более красивого отображения на экране.
+            //Елси есть новые фото, то сортируем их в списке для более красивого отображения на экране.
             Collections.sort(photos, new Comparator<PhotoEntity>() {
                 @Override
                 public int compare(PhotoEntity pe1, PhotoEntity pe2) {

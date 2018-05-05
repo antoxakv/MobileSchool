@@ -37,8 +37,11 @@ public class LoaderInfoAboutPhotos {
 
     public LoaderInfoAboutPhotos(RequestQueue rq, String typeOfPhotos, CalculatorSizeOfPhoto csop, CallBack cb) {
         this.rq = rq;
+        //Происходит построение запросов-шаблонов.
         String hostAndTypeOfPhotos = "https://api-fotki.yandex.ru/api/" + typeOfPhotos;
+        //Запрос для выдачи информации о фотографиях постранично.
         urlForList = hostAndTypeOfPhotos + "/{typeOfDelivery};{time},{id},{uid}/?limit={count}";
+        //Запрос для выдачи информации о фотографиях, выдача ограничена только кол-ом фото в выдаче.
         url = hostAndTypeOfPhotos + "/?limit={count}";
         headers.put("Accept", "application/json");
         this.cb = cb;
@@ -54,6 +57,7 @@ public class LoaderInfoAboutPhotos {
         createRequestForInfoAboutPhoto(replaceInUrlForList(typeOfDelivery, time, id, uid, count), fieldForTime);
     }
 
+    //Загрузка иконок для TableOfPhotos.
     public void getPhoto(String url, final PhotoEntity pe) {
         ImageRequest ir = new ImageRequest(url, new Response.Listener<Bitmap>() {
             @Override
@@ -76,6 +80,7 @@ public class LoaderInfoAboutPhotos {
             public void onResponse(JSONObject response) {
                 try {
                     JSONArray entries = response.getJSONArray("entries");
+                    //Ответ в формате json преобразуется в лист photos.
                     ArrayList<PhotoEntity> photos = new ArrayList<>(entries.length());
                     for (int i = 0; i < entries.length(); i++) {
                         JSONObject obj = entries.getJSONObject(i);
@@ -85,9 +90,10 @@ public class LoaderInfoAboutPhotos {
                         String uid = authors.getString("uid");
                         JSONObject img = obj.getJSONObject("img");
                         String href = "href";
+                        //Вызывается экземпляр класса CalculatorSizeOfPhoto для расчета подходящего размера иконок и фотографии.
                         csop.initProperSizeOfPhotoForScreen(img);
-                        String portraitIconUrl = getIconUrl(csop.getTypeOfSizeForPortrait(), img, href);
-                        String landscapeIconUrl = getIconUrl(csop.getTypeOfSizeForLandscape(), img, href);
+                        String portraitIconUrl = img.getJSONObject(csop.getTypeOfSizeForPortrait()).getString(href);
+                        String landscapeIconUrl = img.getJSONObject(csop.getTypeOfSizeForLandscape()).getString(href);
                         String orig = img.getJSONObject(csop.getMaxSize()).getString(href);
                         String time = obj.getString(fieldForTime);
                         photos.add(new PhotoEntity(id, uid, portraitIconUrl, landscapeIconUrl, orig, time, csop.getHeight()));
@@ -116,16 +122,6 @@ public class LoaderInfoAboutPhotos {
         rq.cancelAll(typeOfPhotos);
     }
 
-    private String getIconUrl(String typeOfSize, JSONObject img, String href) throws JSONException {
-        String iconUrl;
-        if (typeOfSize == null) {
-            iconUrl = img.getJSONObject(csop.getMinSize()).getString(href);
-        } else {
-            iconUrl = img.getJSONObject(typeOfSize).getString(href);
-        }
-        return iconUrl;
-    }
-
     private String replaceInUrlForList(String typeOfDelivery, String time, String id, String uid, int count) {
         return urlForList.replace("{typeOfDelivery}", typeOfDelivery)
                 .replace("{time}", time)
@@ -138,6 +134,7 @@ public class LoaderInfoAboutPhotos {
         return url.replace("{count}", String.valueOf(count));
     }
 
+    //CallBack реализует TableOfPhotos, куда происходит возвращение ответа.
     public interface CallBack {
         void onSuccessLoadPhoto(Bitmap photo, PhotoEntity pe);
 

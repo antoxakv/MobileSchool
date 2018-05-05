@@ -32,12 +32,12 @@ public class PhotoViewHolder extends RecyclerView.ViewHolder implements View.OnC
 
     @Override
     public void onClick(View view) {
-        if (pea.isClickable()) {
-            Intent intent = new Intent(context, ShowPhoto.class);
-            intent.putExtra(ShowPhoto.POSITION, position);
-            intent.putExtra(ShowPhoto.URLS, photosUrls);
-            context.startActivity(intent);
-        }
+        Intent intent = new Intent(context, ShowPhoto.class);
+        //Индекс url, фото которого необходимо отобразить.
+        intent.putExtra(ShowPhoto.POSITION, position);
+        //Передаем url'и полных размеров для swipe'ов фотографий в ShowPhoto.
+        intent.putExtra(ShowPhoto.URLS, photosUrls);
+        context.startActivity(intent);
     }
 
     public void setPhoto(Bitmap photoBitmap) {

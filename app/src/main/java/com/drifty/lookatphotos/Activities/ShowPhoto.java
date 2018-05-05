@@ -10,6 +10,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+
 import com.drifty.lookatphotos.ApplicationContext.PhotosCache;
 import com.drifty.lookatphotos.LoadPhotos.LoaderFullPhoto;
 import com.drifty.lookatphotos.LoadPhotos.Tools.RequestQueueValley;
@@ -76,22 +77,27 @@ public class ShowPhoto extends AppCompatActivity implements LoaderFullPhoto.Call
         imageView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
+                //Обработка swipe'ов влево и вправо для отображения следующей картинки.
                 switch (motionEvent.getAction()) {
                     case MotionEvent.ACTION_DOWN:
+                        //Сохранение кординаты косания экрана.
                         startX = motionEvent.getX();
                         break;
                     case MotionEvent.ACTION_UP:
                     case MotionEvent.ACTION_CANCEL:
+                        //Палец был оторван от экрана.
                         float direction = startX - motionEvent.getX();
                         boolean positionChanged = false;
+                        //Swipe влево.
                         if (direction > 0 && position != photosUrls.size() - 1) {
                             position++;
                             positionChanged = true;
-                        } else if (direction < 0 && position != 0) {
+                        } else if (direction < 0 && position != 0) { //Swipe вправо.
                             position--;
                             positionChanged = true;
                         }
                         if (positionChanged) {
+                            //Загрузка следующего фото.
                             imageView.setImageBitmap(null);
                             progressBar.setVisibility(View.VISIBLE);
                             lfp.getPhoto(photosUrls.get(position));
@@ -105,6 +111,7 @@ public class ShowPhoto extends AppCompatActivity implements LoaderFullPhoto.Call
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+        //Сохраняем текущее фото, Url'и, которые были переданы, и индекс показываемой url.
         photosCache.setCurrentPhoto(photo);
         outState.putStringArrayList(URLS, photosUrls);
         outState.putInt(POSITION, position);

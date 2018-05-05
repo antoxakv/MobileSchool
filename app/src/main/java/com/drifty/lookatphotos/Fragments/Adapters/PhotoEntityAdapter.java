@@ -20,7 +20,6 @@ public class PhotoEntityAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     private ArrayList<String> photosUrls;
     private boolean isPortrait;
     private Context context;
-    private boolean isClickable;
 
     public final static int PHOTO_VIEW = 0;
     public final static int LOADING_VIEW = 1;
@@ -34,24 +33,10 @@ public class PhotoEntityAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
             @Override
             public void onChanged() {
+                //При загрузке новых фото(вызове notifyDataSetChanged), обновляем photosUrls.
                 photosUrls.clear();
-                isClickable = true;
                 for (PhotoEntity pe : photoEntities) {
                     photosUrls.add(pe.getOrigUrl());
-                }
-            }
-
-            @Override
-            public void onItemRangeInserted(int positionStart, int itemCount) {
-                if (itemCount == 1) {
-                    isClickable = false;
-                }
-            }
-
-            @Override
-            public void onItemRangeRemoved(int positionStart, int itemCount) {
-                if (itemCount == 1) {
-                    isClickable = true;
                 }
             }
         });
@@ -88,9 +73,5 @@ public class PhotoEntityAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     @Override
     public int getItemCount() {
         return photoEntities.size();
-    }
-
-    public boolean isClickable() {
-        return isClickable;
     }
 }

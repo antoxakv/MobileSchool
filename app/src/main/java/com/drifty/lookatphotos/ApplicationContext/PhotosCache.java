@@ -8,10 +8,14 @@ import com.drifty.lookatphotos.LoadPhotos.Tools.PhotoEntity;
 import java.util.HashMap;
 import java.util.List;
 
+//Хранятся данные, которые необходимо сохранить при изменении конфигурации.
 public class PhotosCache extends Application {
+    //В map'ах хранятся данные каждого экземпляра TableOfPhotos.
+    //Ключом выступает значение, которое определяет какой тип фото показывает TableOfPhotos.
     private HashMap<String, List<PhotoEntity>> listPhotoEntities = new HashMap<>();
-    private Bitmap currentPhoto;
     private HashMap<String, PhotoEntity> lastPhotoByTime = new HashMap<>();
+    //Фото для показа в ShowPhoto.
+    private Bitmap currentPhoto;
 
     public Bitmap getCurrentPhoto() {
         return currentPhoto;

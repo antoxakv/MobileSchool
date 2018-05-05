@@ -8,6 +8,7 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageRequest;
 
+//Загрузчик фотографий для ShowPhoto.
 public class LoaderFullPhoto {
     private RequestQueue rq;
     private LoaderFullPhoto.CallBack cb;
