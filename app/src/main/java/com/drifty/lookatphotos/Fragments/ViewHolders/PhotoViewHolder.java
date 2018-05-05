@@ -8,6 +8,7 @@ import android.view.View;
 import android.widget.ImageView;
 
 import com.drifty.lookatphotos.Activities.ShowPhoto;
+import com.drifty.lookatphotos.Fragments.Adapters.PhotoEntityAdapter;
 import com.drifty.lookatphotos.R;
 
 import java.util.ArrayList;
@@ -18,21 +19,25 @@ public class PhotoViewHolder extends RecyclerView.ViewHolder implements View.OnC
     private int position;
     private Context context;
     private ArrayList<String> photosUrls;
+    private PhotoEntityAdapter pea;
 
-    public PhotoViewHolder(View itemView, Context context, ArrayList<String> photosUrls) {
+    public PhotoViewHolder(View itemView, Context context, ArrayList<String> photosUrls, PhotoEntityAdapter pea) {
         super(itemView);
         photoView = itemView.findViewById(R.id.photo);
         itemView.setOnClickListener(this);
         this.context = context;
         this.photosUrls = photosUrls;
+        this.pea = pea;
     }
 
     @Override
     public void onClick(View view) {
-        Intent intent = new Intent(context, ShowPhoto.class);
-        intent.putExtra(ShowPhoto.POSITION, position);
-        intent.putExtra(ShowPhoto.URLS, photosUrls);
-        context.startActivity(intent);
+        if (pea.isClickable()) {
+            Intent intent = new Intent(context, ShowPhoto.class);
+            intent.putExtra(ShowPhoto.POSITION, position);
+            intent.putExtra(ShowPhoto.URLS, photosUrls);
+            context.startActivity(intent);
+        }
     }
 
     public void setPhoto(Bitmap photoBitmap) {

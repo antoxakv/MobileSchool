@@ -31,8 +31,7 @@ public class CalculatorSizeOfPhoto {
         int landscapePx = 0;
         int minSizeWidth = 0;
         int minSizeHeight = 0;
-        int maxSizeWidth = 0;
-        int maxSizeHeight = 0;
+        boolean isFind = false;
         while (iterator.hasNext()) {
             String size = iterator.next();
             JSONObject obj = img.getJSONObject(size);
@@ -52,10 +51,16 @@ public class CalculatorSizeOfPhoto {
                 minSizeHeight = height;
                 minSize = size;
             }
-            if (maxSizeWidth <= width && maxSizeHeight <= height) {
-                maxSizeWidth = width;
-                maxSizeHeight = height;
-                maxSize = size;
+            if(height > width){
+                if (heightScreen <= height && !isFind) {
+                    maxSize = size;
+                    isFind = true;
+                }
+            }else{
+                if (heightScreen <= width && !isFind) {
+                    maxSize = size;
+                    isFind = true;
+                }
             }
         }
     }

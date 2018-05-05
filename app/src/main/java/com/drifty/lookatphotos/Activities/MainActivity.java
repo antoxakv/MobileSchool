@@ -20,10 +20,6 @@ import java.util.List;
 
 import com.drifty.lookatphotos.LoadPhotos.Tools.RequestQueueValley;
 
-/*
-adb -e shell svc data disable
-adb -e shell svc data enable
-*/
 public class MainActivity extends AppCompatActivity {
 
     private int countPhotoInLine = 2;

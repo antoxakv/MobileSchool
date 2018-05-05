@@ -43,14 +43,14 @@ public class PhotoEntityAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
             @Override
             public void onItemRangeInserted(int positionStart, int itemCount) {
-                if (itemCount == 1 && photoEntities.get(positionStart) == null) {
+                if (itemCount == 1) {
                     isClickable = false;
                 }
             }
 
             @Override
             public void onItemRangeRemoved(int positionStart, int itemCount) {
-                if (itemCount == 1 && photoEntities.get(positionStart) == null) {
+                if (itemCount == 1) {
                     isClickable = true;
                 }
             }
@@ -62,7 +62,7 @@ public class PhotoEntityAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         RecyclerView.ViewHolder viewHolder = null;
         switch (viewType) {
             case PHOTO_VIEW:
-                viewHolder = new PhotoViewHolder(inflater.inflate(R.layout.icon_of_photo, parent, false), context, photosUrls);
+                viewHolder = new PhotoViewHolder(inflater.inflate(R.layout.icon_of_photo, parent, false), context, photosUrls, this);
                 break;
             case LOADING_VIEW:
                 viewHolder = new LoadingViewHolder(inflater.inflate(R.layout.item_loading, parent, false));
@@ -88,5 +88,9 @@ public class PhotoEntityAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     @Override
     public int getItemCount() {
         return photoEntities.size();
+    }
+
+    public boolean isClickable() {
+        return isClickable;
     }
 }
