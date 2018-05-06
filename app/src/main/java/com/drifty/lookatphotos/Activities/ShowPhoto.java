@@ -80,7 +80,7 @@ public class ShowPhoto extends AppCompatActivity implements LoaderFullPhoto.Call
                 //Обработка swipe'ов влево и вправо для отображения следующей картинки.
                 switch (motionEvent.getAction()) {
                     case MotionEvent.ACTION_DOWN:
-                        //Сохранение кординаты косания экрана.
+                        //Сохранение координаты касания экрана.
                         startX = motionEvent.getX();
                         break;
                     case MotionEvent.ACTION_UP:

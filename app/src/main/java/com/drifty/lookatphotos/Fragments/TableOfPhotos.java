@@ -26,6 +26,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
+//Фрагмент отображает ленту фотографий.
 public class TableOfPhotos extends Fragment implements LoaderInfoAboutPhotos.CallBack {
     private int count;
     private boolean isPortrait;
@@ -69,6 +70,7 @@ public class TableOfPhotos extends Fragment implements LoaderInfoAboutPhotos.Cal
         photosCache = (PhotosCache) getActivity().getApplicationContext();
         isLoading = true;
         photos = new ArrayList<>();
+        //null показывает adapter'у, что надо отображать LoadingViewHolder
         photos.add(null);
         initRecyclerView(fragView, countPhotoInLine);
         loadPhotos(savedInstanceState == null);
@@ -95,12 +97,13 @@ public class TableOfPhotos extends Fragment implements LoaderInfoAboutPhotos.Cal
         if (savedInstanceStateIsNull) {
             loader.getInfoAboutPhoto(count, fieldForTime);
         } else {
+            //Если конфигурация была изменена, то берутся данные из PhotosCache.
             lastPhotoByTime = photosCache.getLastPhotosByTime(typeOfPhotos);
             List<PhotoEntity> savedPhoto = photosCache.getListPhotoEntity(typeOfPhotos);
             if (savedPhoto != null && !savedPhoto.isEmpty()) {
                 photos.addAll(getLastIndexOfPhotos(), savedPhoto);
                 int startIndexForLoad = -1;
-                //Поиск фотографий, у которых нету иконок для нужной ориентации экрана.
+                //Поиск индекса PhotoEntity, у которой нету иконки для нужной ориентации экрана.
                 for (int i = 0; i < getLastIndexOfPhotos(); i++) {
                     if (getCurrentIcon(photos.get(i)) == null) {
                         startIndexForLoad = i;
@@ -108,6 +111,7 @@ public class TableOfPhotos extends Fragment implements LoaderInfoAboutPhotos.Cal
                     }
                 }
                 if (startIndexForLoad == -1) {
+                    //У всех PhotoEntity есть иконки, поэтому показываем их.
                     photos.remove(getLastIndexOfPhotos());
                     isLoading = false;
                     adapter.notifyDataSetChanged();
@@ -132,7 +136,7 @@ public class TableOfPhotos extends Fragment implements LoaderInfoAboutPhotos.Cal
         if (continueLoading) {
             continueLoading = false;
             if (getLastIndexOfPhotos() > 0) {
-                //При отсутсвие LoadingViewHolder проиходит его добавление.
+                //При отсутсвие LoadingViewHolder происходит его добавление.
                 if (photos.get(getLastIndexOfPhotos()) != null) {
                     photos.add(null);
                 }
@@ -141,11 +145,13 @@ public class TableOfPhotos extends Fragment implements LoaderInfoAboutPhotos.Cal
                 while (iterator.hasNext()) {
                     PhotoEntity pe = iterator.next();
                     if (pe != null && getCurrentIcon(pe) == null) {
+                        //Загрузка недостающих иконок.
                         loader.getPhoto(getCurrentUrl(pe), pe);
                         wasNull = true;
                     }
                 }
                 if (!wasNull) {
+                    //Если все иконки успели загрузится, до перехода в stopped, то показываем их.
                     photos.remove(getLastIndexOfPhotos());
                     adapter.notifyDataSetChanged();
                     isLoading = false;
@@ -160,13 +166,14 @@ public class TableOfPhotos extends Fragment implements LoaderInfoAboutPhotos.Cal
     public void onStop() {
         super.onStop();
         if (isLoading) {
-            //Если во время загрузки фото произошел переход в состояние stopped, то загрузка осталанвливается.
+            //Если во время загрузки произошел переход в состояние stopped, то загрузка осталанвливается.
             loader.stopLoading();
             continueLoading = true;
         }
     }
 
     private void initRecyclerView(View fragView, int countPhotoInLine) {
+        //Иницилизация  recyclerView и т.д для отображения ленты фотографий.
         recyclerView = fragView.findViewById(R.id.recyclerView);
         adapter = new PhotoEntityAdapter(getContext(), photos, isPortrait);
         final GridLayoutManager glm = new GridLayoutManager(getContext(), countPhotoInLine);
@@ -190,9 +197,9 @@ public class TableOfPhotos extends Fragment implements LoaderInfoAboutPhotos.Cal
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                super.onScrolled(recyclerView, dx, dy);
                 int totalItemCount = glm.getItemCount();
                 int lastVisibleItem = glm.findLastVisibleItemPosition();
+                //При достижении конца ленты, происходит запрос дополнительных фотографий.
                 if (!isLoading && totalItemCount - 1 == lastVisibleItem && photos.size() > 0) {
                     isLoading = true;
                     photos.add(null);
@@ -239,8 +246,9 @@ public class TableOfPhotos extends Fragment implements LoaderInfoAboutPhotos.Cal
     }
 
     private void photosLoaded() {
-        if (expectPhotos == errorPhotos.size()) { //Удаляем информацию о фотографиях, которые не смогли загрузить
-            if (getLastIndexOfPhotos() == errorPhotos.size()) { //Если все фото не смогли загрузиться, то показываем notificationOfError.
+        if (expectPhotos == errorPhotos.size()) { //Признак окончания загрузки иконок.
+            //Если все иконки не смогли загрузиться (при первой загрузки), то показываем notificationOfError.
+            if (getLastIndexOfPhotos() == errorPhotos.size()) {
                 notificationOfError.setVisibility(View.VISIBLE);
             }
             photos.remove(getLastIndexOfPhotos());
@@ -268,7 +276,9 @@ public class TableOfPhotos extends Fragment implements LoaderInfoAboutPhotos.Cal
             adapter.notifyItemRemoved(i);
             isLoading = false;
         } else {
+            //Необходимо понимать, сколько фотографий будет загружено, чтобы убрать индикатор загрузки и показать их.
             expectPhotos = photos.size();
+            //Сохранение ссылки на последнюю фотографию, чтобы начать строить запрос дозагрузки от этой фотогрфии.
             lastPhotoByTime = photos.get(expectPhotos - 1);
             //Елси есть новые фото, то сортируем их в списке для более красивого отображения на экране.
             Collections.sort(photos, new Comparator<PhotoEntity>() {
@@ -286,6 +296,7 @@ public class TableOfPhotos extends Fragment implements LoaderInfoAboutPhotos.Cal
 
     @Override
     public void onFailedLoadInfoAboutPhoto() {
+        //Если лента с фото пустая, то происходит показ ошибки.
         if (photos.size() == 1) {
             notificationOfError.setVisibility(View.VISIBLE);
         }

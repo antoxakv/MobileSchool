@@ -48,14 +48,14 @@ public class CalculatorSizeOfPhoto {
                 typeOfSizeForLandscape = size;
             }
             if (height > width) {
-                //Если фотография портретная, то ищем первый размер фото,
+                //Если фотография портретная, то поиск первого размера фото,
                 //который больше по высоте, чем высота экрана.
                 if (heightScreen <= height && !isFind) {
                     maxSize = size;
                     isFind = true;
                 }
             } else {
-                //В остальных случаях ищем первый размер фото,
+                //В остальных случаях поиск первого размера фото,
                 //который больше по ширине, чем ширина экрана.
                 if (heightScreen <= width && !isFind) {
                     maxSize = size;
