@@ -14,7 +14,8 @@ public class CalculatorSizeOfPhoto {
 
     private String typeOfSizeForLandscape;
     private String typeOfSizeForPortrait;
-    private String maxSize;
+    private String maxSizeForScreen;
+    private String maxSizeInImg;
     private int height;
 
     public CalculatorSizeOfPhoto(int widthScreen, int heightScreen, int countPhotoInLine) {
@@ -30,7 +31,13 @@ public class CalculatorSizeOfPhoto {
         int possibleSizeForLandscape = heightScreen / countPhotoInLine;
         int portraitPx = 0;
         int landscapePx = 0;
+        int maxSizeWidth = 0;
+        int maxSizeHeight = 0;
         boolean isFind = false;
+        typeOfSizeForLandscape = null;
+        typeOfSizeForPortrait = null;
+        maxSizeForScreen = null;
+        maxSizeInImg = null;
         while (iterator.hasNext()) {
             String size = iterator.next();
             JSONObject obj = img.getJSONObject(size);
@@ -51,16 +58,21 @@ public class CalculatorSizeOfPhoto {
                 //Если фотография портретная, то поиск первого размера фото,
                 //который больше по высоте, чем высота экрана.
                 if (heightScreen <= height && !isFind) {
-                    maxSize = size;
+                    maxSizeForScreen = size;
                     isFind = true;
                 }
             } else {
                 //В остальных случаях поиск первого размера фото,
                 //который больше по ширине, чем ширина экрана.
                 if (heightScreen <= width && !isFind) {
-                    maxSize = size;
+                    maxSizeForScreen = size;
                     isFind = true;
                 }
+            }
+            if (maxSizeWidth <= width && maxSizeHeight <= height) {
+                maxSizeWidth = width;
+                maxSizeHeight = height;
+                maxSizeInImg = size;
             }
         }
     }
@@ -74,7 +86,7 @@ public class CalculatorSizeOfPhoto {
     }
 
     public String getMaxSize() {
-        return maxSize;
+        return maxSizeForScreen == null ? maxSizeInImg : maxSizeForScreen;
     }
 
     public int getHeight() {
